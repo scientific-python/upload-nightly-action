@@ -7,9 +7,6 @@ inputs:
   artifacts_path:
     description: 'Path to the artifacts directory'
     required: true
-  project-name:
-    description: 'Name of the project'
-    required: true
 
 runs:
   using: 'docker'

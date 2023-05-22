@@ -4,7 +4,7 @@ set -e
 set -x
 
 ANACONDA_ORG="scientific-python-nightly-wheel"
-ANACONDA_TOKEN="$NIGHTLY_UPLOAD_TOKEN"
+ANACONDA_TOKEN="$ANACONDA_NIGHTLY_UPLOAD_TOKEN"
 
 
 export PATH=$CONDA/bin:$PATH

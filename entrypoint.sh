@@ -19,5 +19,11 @@ micromamba activate base
 # trim trailing slashes from $INPUT_ARTIFACTS_PATH
 INPUT_ARTIFACTS_PATH="${INPUT_ARTIFACTS_PATH%/}"
 
+# debug, print env
+env
+
+# upload wheels
+echo "Uploading wheels to anaconda.org..."
+
 anaconda -t $ANACONDA_TOKEN upload --force -u "$ANACONDA_ORG" "$INPUT_ARTIFACTS_PATH"/*.whl
 echo "Index: https://pypi.anaconda.org/$ANACONDA_ORG/simple"

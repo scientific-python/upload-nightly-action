@@ -10,7 +10,7 @@ set -e
 set -x
 
 ANACONDA_ORG="scientific-python-nightly-wheel"
-ANACONDA_TOKEN="$ANACONDA_NIGHTLY_UPLOAD_TOKEN"
+ANACONDA_TOKEN="$INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN"
 
 micromamba install -y -n base python anaconda-client -c conda-forge
 eval "$(micromamba shell hook --shell=bash)"

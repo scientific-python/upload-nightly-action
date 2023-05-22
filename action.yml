@@ -1,0 +1,20 @@
+name: Upload Nightly
+description: A GitHub Action to upload artifacts nightly
+permissions:
+  actions: read
+  contents: read
+  metadata: read
+author: "Scientific-Python"
+version: "1.0.0"
+
+inputs:
+  artifacts_path:
+    description: 'Path to the artifacts directory where wheels to upload are present'
+    required: true
+  anaconda_nightly_upload_token:
+    description: 'Token to upload to scientific python org'
+    required: true
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

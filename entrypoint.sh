@@ -9,7 +9,7 @@ set -e
 # enable trace mode (print what it does)
 set -x
 
-ANACONDA_ORG="scientific-python-nightly-wheel"
+ANACONDA_ORG="scientific-python-nightly-wheels"
 ANACONDA_TOKEN="$INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN"
 
 conda install -y anaconda-client -c conda-forge

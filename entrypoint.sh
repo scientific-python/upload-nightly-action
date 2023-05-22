@@ -16,5 +16,8 @@ micromamba install -y -n base python anaconda-client -c conda-forge
 eval "$(micromamba shell hook --shell=bash)"
 micromamba activate base
 
+# trim trailing slashes from $INPUT_ARTIFACTS_PATH
+INPUT_ARTIFACTS_PATH="${INPUT_ARTIFACTS_PATH%/}"
+
 anaconda -t $ANACONDA_TOKEN upload --force -u "$ANACONDA_ORG" "$INPUT_ARTIFACTS_PATH/*.whl"
 echo "Index: https://pypi.anaconda.org/$ANACONDA_ORG/simple"

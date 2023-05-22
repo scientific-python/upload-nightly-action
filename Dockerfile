@@ -8,7 +8,7 @@
 
 FROM mambaorg/micromamba:latest
 
-COPY entrypoint.sh /entrypoint.sh
-# RUN chmod +x /entrypoint.sh
+COPY --chown=$MAMBA_USER:$MAMBA_USER entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

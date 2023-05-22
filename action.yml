@@ -1,11 +1,15 @@
 name: Upload Nightly
 description: A GitHub Action to upload artifacts nightly
-author: Your Name
-version: 1.0.0
+permissions:
+  actions: read
+  contents: read
+  metadata: read
+author: "Scientific-Python"
+version: "1.0.0"
 
 inputs:
   artifacts_path:
-    description: 'Path to the artifacts directory'
+    description: 'Path to the artifacts directory where wheels to upload are present'
     required: true
   anaconda_nightly_upload_token:
     description: 'Token to upload to scientific python org'

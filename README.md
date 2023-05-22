@@ -1,7 +1,7 @@
 # nightly uplolad. 
 
 
-This provide a standard action to upload nightly updates to the
+This provides a standard GitHub Action to upload nightly builds to the
 scientific-python nightly channel. 
 
 In your Continuous Intregration pipeline once you've built you wheel, you can
@@ -20,10 +20,10 @@ jobs:
 ```
 
 
-To request access to the repository please open and issue on [this action
-repository](https://github.com/scientific-python/upload-nightly-action), you can
-generate a token at `https://anaconda.org/<username>/settings/access` ... chck
-minimum permissions and set it in github tokens secrets. 
+To request access to the repository please open an issue on [this action
+repository](https://github.com/scientific-python/upload-nightly-action). You can
+then generate a token at `https://anaconda.org/<username>/settings/access`, check
+minimum permissions and add the token as a secret to your GitHub repository.
 
 
 # using nightly builds in CI. 

@@ -12,9 +12,7 @@ set -x
 ANACONDA_ORG="scientific-python-nightly-wheel"
 ANACONDA_TOKEN="$INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN"
 
-micromamba install -y -n base python anaconda-client -c conda-forge
-eval "$(micromamba shell hook --shell=bash)"
-micromamba activate base
+conda install -y anaconda-client -c conda-forge
 
 # trim trailing slashes from $INPUT_ARTIFACTS_PATH
 INPUT_ARTIFACTS_PATH="${INPUT_ARTIFACTS_PATH%/}"

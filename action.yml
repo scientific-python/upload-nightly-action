@@ -7,6 +7,9 @@ inputs:
   artifacts_path:
     description: 'Path to the artifacts directory'
     required: true
+  anaconda_nightly_upload_token:
+    description: 'Token to upload to scientific python org'
+    required: true
 
 runs:
   using: 'docker'

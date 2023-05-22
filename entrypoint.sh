@@ -9,8 +9,29 @@ set -e
 # enable trace mode (print what it does)
 set -x
 
+# this is to prevent accidental uploads
+if [ -n "${GITHUB_PULL_REQUEST}" ]; then
+  echo "This is a pull request, exiting..."
+  exit 0
+fi
+
+# get the anaconda token from the github secrets
+#
+# this is to prevent accidental uploads
+echo "Getting anaconda token from github secrets..."
+
 ANACONDA_ORG="scientific-python-nightly-wheels"
 ANACONDA_TOKEN="$INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN"
+
+# if the ANACONDA_TOKEN is empty, exit with status -1
+# this is to prevent accidental uploads
+if [ -z "$ANACONDA_TOKEN" ]; then
+  echo "ANACONDA_TOKEN is empty , exiting..."
+  exit -1
+fi
+
+# install anaconda-client
+echo "Installing anaconda-client..."
 
 conda install -y anaconda-client -c conda-forge
 

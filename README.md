@@ -25,3 +25,22 @@ repository](https://github.com/scientific-python/upload-nightly-action), you can
 generate a token at `https://anaconda.org/<username>/settings/access` ... chck
 minimum permissions and set it in github tokens secrets. 
 
+
+# using nightly builds in CI. 
+
+To test those nightly build, you can use the following command to install from
+the nightly package. 
+
+```
+python -m pip install matplotlib -i https://pypi.org/simple  -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple  --upgrade --pre
+```
+
+Note that second `-i` parameter will take priority, it needs to come second if
+you want to pull from nightly otherwise it will pull from pypi. 
+
+```
+if package in nightly:
+   try to install from nightly
+else:
+   try to install from pypi
+```

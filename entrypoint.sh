@@ -9,12 +9,6 @@ set -e
 # enable trace mode (print what it does)
 set -x
 
-# this is to prevent accidental uploads
-if [ -n "${GITHUB_PULL_REQUEST}" ]; then
-  echo "This is a pull request, exiting..."
-  exit 0
-fi
-
 # get the anaconda token from the github secrets
 #
 # this is to prevent accidental uploads

@@ -29,7 +29,7 @@ To test those nightly build, you can use the following command to install from
 the nightly package.
 
 ```sh
-python -m pip install matplotlib -i https://pypi.org/simple  -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple  --upgrade --pre
+python -m pip install matplotlib --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple  --upgrade --pre
 ```
 
 Note that second `-i` parameter will take priority, it needs to come second if

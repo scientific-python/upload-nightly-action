@@ -29,11 +29,18 @@ To test those nightly build, you can use the following command to install from
 the nightly package.
 
 ```sh
-python -m pip install matplotlib --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple  --upgrade --pre
+python -m pip install \
+  --upgrade \
+  --pre \
+  --index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple \
+  --extra-index-url https://pypi.org/simple \
+  matplotlib
 ```
 
-Note that second `-i` parameter will take priority, it needs to come second if
-you want to pull from nightly otherwise it will pull from PyPI.
+Note that `--index-url` takes priority over `--extra-index-url`.
+Packages, and dependencies, with versions available on the
+[nightly package index][] will be installed from there before falling back to
+the [Python Package Index][PyPI] to install all remaining requested packages.
 
 ```
 if package in nightly:
@@ -50,6 +57,9 @@ name: test
 dependencies:
   - pip
   - pip:
-    - --pre --extra-index https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
+    - --pre --index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --extra-index-url https://pypi.org/simple
     - matplotlib
 ```
+
+[nightly package index]: https://anaconda.org/scientific-python-nightly-wheels
+[PyPI]: https://pypi.org/

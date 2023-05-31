@@ -1,0 +1,81 @@
+name: Remove old wheels
+
+on:
+  # Run daily at 1:23 UTC
+  schedule:
+  - cron:  '23 1 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Needed for micromamba pickup
+defaults:
+  run:
+    shell: bash -l {0}
+
+env:
+  N_LATEST_UPLOADS: 5
+  ANACONDA_USER: "scientific-python-nightly-wheels"
+
+jobs:
+  remove:
+
+    runs-on: ubuntu-latest
+    # Set required workflow secrets in the environment for additional security
+    # https://github.com/scientific-python/upload-nightly-action/settings/environments
+    environment:
+      name: remove-old-wheels
+
+    steps:
+      - name: Install micromamba and anaconda-client
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-name: remove-wheels
+          create-args: >-
+            python=3.11
+            anaconda-client=1.11.2
+
+      - name: Show environment
+        run: env
+
+      - name: Show CLI API info
+        run: |
+          anaconda show --help
+          echo ""
+          anaconda remove --help
+
+      - name: Query package index for packages
+        run: |
+          anaconda show "${ANACONDA_USER}" &> >(grep "${ANACONDA_USER}/") | \
+              awk '{print $1}' | \
+              sed 's|.*/||g' > package-names.txt
+
+      - name: Remove old uploads to save space
+        run: |
+          # Remove all _but_ the last ${N_LATEST_UPLOADS} package versions
+          # N.B.: `anaconda show` places the newest packages at the bottom of the output
+          # of the 'Versions' section and package versions are preceded with a '   + '.
+
+          if [ -s package-names.txt ]; then
+              # Remember can't quote subshell as need to split on (space seperated) token
+              for package_name in $(cat package-names.txt); do
+
+                  echo -e "\n# package: ${package_name}"
+
+                  anaconda show "${ANACONDA_USER}/${package_name}" &> >(grep '+') | \
+                      awk '{print $2}' | \
+                      head --lines "-${N_LATEST_UPLOADS}" > remove-package-versions.txt
+
+                  if [ -s remove-package-versions.txt ]; then
+                      for package_version in $(cat remove-package-versions.txt); do
+                          echo "# Removing ${ANACONDA_USER}/${package_name}/${package_version}"
+                          anaconda --token ${{ secrets.ANACONDA_TOKEN }} remove \
+                            --force \
+                            "${ANACONDA_USER}/${package_name}/${package_version}"
+                      done
+                  fi
+
+              done
+          fi

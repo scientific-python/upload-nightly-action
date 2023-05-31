@@ -6,15 +6,32 @@ scientific-python nightly channel.
 In your Continuous Intregration pipeline once you've built you wheel, you can
 use the following snippet to upload to our central nightly repository:
 
+<!-- c.f. https://github.com/scientific-python/upload-nightly-action/pull/13 and
+https://github.com/matplotlib/matplotlib/pull/26023#discussion_r1212539700
+for short summary of why using commit SHA -->
+
 ```yml
 jobs:
   steps:
     ...
     - name: Upload wheel
-      uses: scientific-python/upload-nightly-action@main
+      uses: scientific-python/upload-nightly-action@8f0394fd2aa0c85d7364a9958652e8994e06b23c # 0.1.0
       with:
         artifacts_path: dist
         anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
+```
+
+It is [recommended that Dependabot is used][] to keep the GitHub Action updated
+to the latest release by using a `.github/dependabot.yml` config file similar to
+
+```yaml
+version: 2
+updates:
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
 ```
 
 To request access to the repository please open an issue on [this action
@@ -60,6 +77,6 @@ dependencies:
     - --pre --index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --extra-index-url https://pypi.org/simple
     - matplotlib
 ```
-
+[recommended that Dependabot is used]: https://learn.scientific-python.org/development/guides/gha_basic/#updating
 [nightly package index]: https://anaconda.org/scientific-python-nightly-wheels
 [PyPI]: https://pypi.org/

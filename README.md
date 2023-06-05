@@ -3,7 +3,7 @@
 This provides a standard GitHub Action to upload nightly builds to the
 scientific-python nightly channel.
 
-In your Continuous Intregration pipeline once you've built you wheel, you can
+In your Continuous Integration pipeline once you've built you wheel, you can
 use the following snippet to upload to our central nightly repository:
 
 <!-- c.f. https://github.com/scientific-python/upload-nightly-action/pull/13 and

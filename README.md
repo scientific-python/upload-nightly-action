@@ -69,6 +69,7 @@ index in your `environment.yml`:
 ```yml
 name: test
 dependencies:
+  - pip
   - pip:
     - --pre --index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --extra-index-url https://pypi.org/simple
     - matplotlib

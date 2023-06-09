@@ -1,0 +1,38 @@
+name: Keep workflows alive
+
+on:
+  # Run on the first of each month at 1:23 UTC
+  schedule:
+  - cron:  '23 1 1 * *'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Create a minimal payload
+      run: |
+        mkdir _pass
+        touch _pass/pass.txt
+
+    - name: Keep workflow alive
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: keep-alive
+        publish_dir: _pass
+        enable_jekyll: true  # avoid extra files
+        force_orphan: true  # overwirte
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+        commit_message: Keep repo GitHub Actions alive

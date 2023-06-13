@@ -23,6 +23,7 @@ jobs:
   remove:
 
     runs-on: ubuntu-latest
+    if: github.repository_owner == 'scientific-python'
     # Set required workflow secrets in the environment for additional security
     # https://github.com/scientific-python/upload-nightly-action/settings/environments
     environment:

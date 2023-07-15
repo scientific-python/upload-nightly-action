@@ -24,13 +24,15 @@ if [ -z "$ANACONDA_TOKEN" ]; then
   exit -1
 fi
 
+export ANACONDA_CLIENT_VERSION="1.12.0"
+
 # install anaconda-client
-echo "Installing anaconda-client..."
+echo "Installing anaconda-client v${ANACONDA_CLIENT_VERSION}..."
 
 micromamba install \
   --yes \
   --channel conda-forge \
-  "anaconda-client"
+  "anaconda-client==${ANACONDA_CLIENT_VERSION}"
 
 # trim trailing slashes from $INPUT_ARTIFACTS_PATH
 INPUT_ARTIFACTS_PATH="${INPUT_ARTIFACTS_PATH%/}"

@@ -27,7 +27,10 @@ fi
 # install anaconda-client
 echo "Installing anaconda-client..."
 
-conda install -y anaconda-client -c conda-forge
+micromamba install \
+  --yes \
+  --channel conda-forge \
+  "anaconda-client"
 
 # trim trailing slashes from $INPUT_ARTIFACTS_PATH
 INPUT_ARTIFACTS_PATH="${INPUT_ARTIFACTS_PATH%/}"

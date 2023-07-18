@@ -15,19 +15,24 @@ set -x
 echo "Getting anaconda token from github secrets..."
 
 ANACONDA_ORG="scientific-python-nightly-wheels"
-ANACONDA_TOKEN="$INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN"
+ANACONDA_TOKEN="${INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN}"
 
 # if the ANACONDA_TOKEN is empty, exit with status -1
 # this is to prevent accidental uploads
-if [ -z "$ANACONDA_TOKEN" ]; then
+if [ -z "${ANACONDA_TOKEN}" ]; then
   echo "ANACONDA_TOKEN is empty , exiting..."
   exit -1
 fi
 
-# install anaconda-client
-echo "Installing anaconda-client..."
+export ANACONDA_CLIENT_VERSION="1.12.0"
 
-conda install -y anaconda-client -c conda-forge
+# install anaconda-client
+echo "Installing anaconda-client v${ANACONDA_CLIENT_VERSION}..."
+
+micromamba install \
+  --yes \
+  --channel conda-forge \
+  "anaconda-client==${ANACONDA_CLIENT_VERSION}"
 
 # trim trailing slashes from $INPUT_ARTIFACTS_PATH
 INPUT_ARTIFACTS_PATH="${INPUT_ARTIFACTS_PATH%/}"
@@ -38,5 +43,8 @@ env
 # upload wheels
 echo "Uploading wheels to anaconda.org..."
 
-anaconda -t $ANACONDA_TOKEN upload --force -u "$ANACONDA_ORG" "$INPUT_ARTIFACTS_PATH"/*.whl
-echo "Index: https://pypi.anaconda.org/$ANACONDA_ORG/simple"
+anaconda --token "${ANACONDA_TOKEN}" upload \
+  --force \
+  --user "${ANACONDA_ORG}" \
+  "${INPUT_ARTIFACTS_PATH}"/*.whl
+echo "Index: https://pypi.anaconda.org/${ANACONDA_ORG}/simple"

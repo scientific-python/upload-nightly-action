@@ -75,7 +75,7 @@ dependencies:
     - matplotlib
 ```
 
-[use Dependabot to keep the GitHub Action up to date]: https://learn.scientific-python.org/development/guides/gha_basic/#updating
+[use Dependabot to keep the GitHub Action up to date]: https://learn.scientific-python.org/development/guides/gha-basic/#updating
 [PyPI]: https://pypi.org/
 [scientific-python nightly channel]: https://anaconda.org/scientific-python-nightly-wheels
 [SPEC4 — Using and Creating Nightly Wheels]: https://scientific-python.org/specs/spec-0004/

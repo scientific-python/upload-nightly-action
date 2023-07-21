@@ -43,8 +43,11 @@ env
 # upload wheels
 echo "Uploading wheels to anaconda.org..."
 
-anaconda --token "${ANACONDA_TOKEN}" upload \
-  --force \
-  --user "${ANACONDA_ORG}" \
-  "${INPUT_ARTIFACTS_PATH}"/*.whl
+anaconda \
+  --verbose \
+  --token "${ANACONDA_TOKEN}" \
+  upload \
+    --force \
+    --user "${ANACONDA_ORG}" \
+    "${INPUT_ARTIFACTS_PATH}"/*.whl
 echo "Index: https://pypi.anaconda.org/${ANACONDA_ORG}/simple"

@@ -24,15 +24,17 @@ if [ -z "${ANACONDA_TOKEN}" ]; then
   exit -1
 fi
 
-export ANACONDA_CLIENT_VERSION="1.12.0"
-
-# install anaconda-client
-echo "Installing anaconda-client v${ANACONDA_CLIENT_VERSION}..."
-
-micromamba install \
+# Install anaconda-client from lock file
+echo "Installing anaconda-client from upload-nightly-action conda-lock lock file..."
+micromamba create \
   --yes \
-  --channel conda-forge \
-  "anaconda-client==${ANACONDA_CLIENT_VERSION}"
+  --name upload-nightly-action \
+  --file /conda-lock.yml
+
+# 'micromamba' is running as a subprocess and can't modify the parent shell.
+# Thus you must initialize your shell before using activate and deactivate.
+eval "$(micromamba shell hook --shell bash)"
+micromamba activate upload-nightly-action
 
 # trim trailing slashes from $INPUT_ARTIFACTS_PATH
 INPUT_ARTIFACTS_PATH="${INPUT_ARTIFACTS_PATH%/}"

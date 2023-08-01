@@ -8,6 +8,8 @@ SHELL [ "/bin/bash", "-c" ]
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
+# lock file created by running lock.sh in the top level of the repository
+COPY --chown=mambauser conda-lock.yml /conda-lock.yml
 COPY --chown=mambauser cmd.sh /cmd.sh
 RUN chmod +x /cmd.sh
 

@@ -72,8 +72,6 @@ jobs:
                       jq -r '.releases[].version' > package-versions.txt
                   head --lines "-${N_LATEST_UPLOADS}" package-versions.txt > remove-package-versions.txt
 
-                  # Don't need to check for duplicate versions added to removal
-                  # given nightly CRON basis.
                   for package_version in $(cat package-versions.txt); do
                     # c.f. https://github.com/Anaconda-Platform/anaconda-client/issues/682#issuecomment-1677283067
                     upload_date=$(curl --silent https://api.anaconda.org/release/"${ANACONDA_USER}/${package_name}/${package_version}" | \
@@ -89,6 +87,10 @@ jobs:
                   done
 
                   if [ -s remove-package-versions.txt ]; then
+                      # Guard against duplicate entries from packages over
+                      # count and time thresholds
+                      sort --output remove-package-versions.txt --unique remove-package-versions.txt
+
                       for package_version in $(cat remove-package-versions.txt); do
                           echo "# Removing ${ANACONDA_USER}/${package_name}/${package_version}"
                           anaconda --token ${{ secrets.ANACONDA_TOKEN }} remove \

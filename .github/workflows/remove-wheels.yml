@@ -37,6 +37,8 @@ jobs:
           create-args: >-
             python=3.11
             anaconda-client=1.12.0
+            curl
+            jq
 
       - name: Show environment
         run: env
@@ -55,21 +57,40 @@ jobs:
 
       - name: Remove old uploads to save space
         run: |
-          # Remove all _but_ the last ${N_LATEST_UPLOADS} package versions
-          # N.B.: `anaconda show` places the newest packages at the bottom of the output
-          # of the 'Versions' section and package versions are preceded with a '   + '.
+          # Remove all _but_ the last ${N_LATEST_UPLOADS} package versions and
+          # remove all package versions older than 30 days.
 
           if [ -s package-names.txt ]; then
+              threshold_date="$(date +%F -d '30 days ago')"
+
               # Remember can't quote subshell as need to split on (space seperated) token
               for package_name in $(cat package-names.txt); do
 
                   echo -e "\n# package: ${package_name}"
 
-                  anaconda show "${ANACONDA_USER}/${package_name}" &> >(grep '+') | \
-                      awk '{print $2}' | \
-                      head --lines "-${N_LATEST_UPLOADS}" > remove-package-versions.txt
+                  curl --silent https://api.anaconda.org/package/"${ANACONDA_USER}/${package_name}" | \
+                      jq -r '.releases[].version' > package-versions.txt
+                  head --lines "-${N_LATEST_UPLOADS}" package-versions.txt > remove-package-versions.txt
+
+                  for package_version in $(cat package-versions.txt); do
+                    # c.f. https://github.com/Anaconda-Platform/anaconda-client/issues/682#issuecomment-1677283067
+                    upload_date=$(curl --silent https://api.anaconda.org/release/"${ANACONDA_USER}/${package_name}/${package_version}" | \
+                        jq -r '.distributions[].upload_time' | \
+                        sort | \
+                        tail --lines 1 | \
+                        awk '{print $1}')
+
+                    if [[ "${upload_date}" < "${threshold_date}" ]]; then
+                        echo "# ${ANACONDA_USER}/${package_name}/${package_version} last uploaded on ${upload_date}"
+                        echo "${package_version}" >> remove-package-versions.txt
+                    fi
+                  done
 
                   if [ -s remove-package-versions.txt ]; then
+                      # Guard against duplicate entries from packages over
+                      # count and time thresholds
+                      sort --output remove-package-versions.txt --unique remove-package-versions.txt
+
                       for package_version in $(cat remove-package-versions.txt); do
                           echo "# Removing ${ANACONDA_USER}/${package_name}/${package_version}"
                           anaconda --token ${{ secrets.ANACONDA_TOKEN }} remove \

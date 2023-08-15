@@ -51,9 +51,11 @@ jobs:
 
       - name: Query package index for packages
         run: |
+          curl https://raw.githubusercontent.com/scientific-python/upload-nightly-action/main/packages-ignore-from-cleanup.txt --output packages-ignore-from-cleanup.txt
           anaconda show "${ANACONDA_USER}" &> >(grep "${ANACONDA_USER}/") | \
               awk '{print $1}' | \
-              sed 's|.*/||g' > package-names.txt
+              sed 's|.*/||g' | \
+              grep -vf packages-ignore-from-cleanup.txt > package-names.txt
 
       - name: Remove old uploads to save space
         run: |

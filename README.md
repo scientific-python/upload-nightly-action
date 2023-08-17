@@ -21,7 +21,7 @@ Note that we recommend pinning the action against a specific SHA
 (rather than a tag), to guard against the unlikely event of upstream
 being compromised.
 
-# Updating the action
+## Updating the action
 
 You can [use Dependabot to keep the GitHub Action up to date][],
 with a `.github/dependabot.yml` config file similar to:
@@ -36,13 +36,14 @@ updates:
       interval: "weekly"
 ```
 
-# Access
+## Access to the ``scientific-python-nightly-wheels`` space
 
-To request access to the repository, please open an issue on [this action's
+To request access to the wheel channel, please open an issue on [the upload action's
 repository](https://github.com/scientific-python/upload-nightly-action). You can
 then generate a token at `https://anaconda.org/scientific-python-nightly-wheels/settings/access`
 with permissions to _Allow write access to the API site_ and _Allow uploads to Standard Python repositories_,
 and add the token as a secret to your GitHub repository.
+
 
 # Using nightly builds in CI
 

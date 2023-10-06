@@ -1,0 +1,6 @@
+name: upload-nightly-action
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - anaconda-client==1.12.1

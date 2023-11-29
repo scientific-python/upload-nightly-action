@@ -14,8 +14,8 @@ inputs:
   anaconda_nightly_upload_token:
     description: 'Token to upload to scientific python org'
     required: true
-  anaconda_nightly_upload_url:
-    description: 'URL of the index to upload the wheels to'
+  anaconda_nightly_upload_organization:
+    description: 'Organisation name to upload the wheels to'
     required: false
     default: scientific-python-nightly-wheels
   anaconda_nightly_upload_labels:

@@ -14,9 +14,17 @@ set -x
 # this is to prevent accidental uploads
 echo "Getting anaconda token from github secrets..."
 
-ANACONDA_ORG="${INPUT_ANACONDA_NIGHTLY_UPLOAD_URL}"
+ANACONDA_ORG="${INPUT_ANACONDA_NIGHTLY_UPLOAD_ORGANIZATION}"
 ANACONDA_TOKEN="${INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN}"
 ANACONDA_LABELS="${INPUT_ANACONDA_NIGHTLY_UPLOAD_LABELS}"
+
+# if the ANACONDA_ORG is empty, exit with status -1
+# this is to prevent attempt to upload to the wrong anaconda channel
+if [ -z "${ANACONDA_ORG}" ]; then
+  echo "ANACONDA_ORG is empty , exiting..."
+  exit -1
+fi
+
 
 # if the ANACONDA_TOKEN is empty, exit with status -1
 # this is to prevent accidental uploads

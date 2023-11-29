@@ -14,8 +14,9 @@ set -x
 # this is to prevent accidental uploads
 echo "Getting anaconda token from github secrets..."
 
-ANACONDA_ORG="scientific-python-nightly-wheels"
+ANACONDA_ORG="${INPUT_ANACONDA_NIGHTLY_UPLOAD_URL}"
 ANACONDA_TOKEN="${INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN}"
+ANACONDA_LABELS="${INPUT_ANACONDA_NIGHTLY_UPLOAD_LABELS}"
 
 # if the ANACONDA_TOKEN is empty, exit with status -1
 # this is to prevent accidental uploads
@@ -48,5 +49,6 @@ echo "Uploading wheels to anaconda.org..."
 anaconda --token "${ANACONDA_TOKEN}" upload \
   --force \
   --user "${ANACONDA_ORG}" \
+  --label "${ANACONDA_LABELS}" \
   "${INPUT_ARTIFACTS_PATH}"/*.whl
 echo "Index: https://pypi.anaconda.org/${ANACONDA_ORG}/simple"

@@ -14,6 +14,14 @@ inputs:
   anaconda_nightly_upload_token:
     description: 'Token to upload to scientific python org'
     required: true
+  anaconda_nightly_upload_url:
+    description: 'URL to upload to scientific python org'
+    required: false
+    default: scientific-python-nightly-wheels
+  anaconda_nightly_upload_labels:
+    description: 'Labels assigned to the uploaded artifacts'
+    required: false
+    default: main
 
 runs:
   using: 'docker'

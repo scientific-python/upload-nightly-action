@@ -44,6 +44,23 @@ then generate a token at `https://anaconda.org/scientific-python-nightly-wheels/
 with permissions to _Allow write access to the API site_ and _Allow uploads to Standard Python repositories_,
 and add the token as a secret to your GitHub repository.
 
+## Using a different channel
+
+This Github Action can upload your nightly builds to a different channel. To do so,
+you will required to define  `anaconda_nightly_upload_url` variable. See below:
+
+```yml
+jobs:
+  steps:
+    ...
+    - name: Upload wheel
+      uses: scientific-python/upload-nightly-action@5fb764c5bce1ac2297084c0f7161b1919f17c74f # 0.2.0
+      with:
+        artifacts_path: dist
+        anaconda_nightly_upload_url: my-alternative-scientific-channel
+        anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
+```
+
 ## Artifact cleanup-policy at the ``scientific-python-nightly-wheels`` channel
 
 To avoid hosting outdated development versions, as well as to clean up space, we do have a

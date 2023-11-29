@@ -47,8 +47,8 @@ and add the token as a secret to your GitHub repository.
 ## Using a different channel
 
 This Github Action can upload your nightly builds to a different channel. To do so,
-you will required to define  `anaconda_nightly_upload_url` variable. Furthermore,
-you can define the labels to use for organizing your artifacts by using `anaconda_nightly_upload_labels`
+define the `anaconda_nightly_upload_url` variable. Furthermore,
+you can add labels for organizing your artifacts using `anaconda_nightly_upload_labels`
 optional parameter. See below:
 
 ```yml

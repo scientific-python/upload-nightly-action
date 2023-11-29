@@ -47,7 +47,9 @@ and add the token as a secret to your GitHub repository.
 ## Using a different channel
 
 This Github Action can upload your nightly builds to a different channel. To do so,
-you will required to define  `anaconda_nightly_upload_url` variable. See below:
+you will required to define  `anaconda_nightly_upload_url` variable. Furthermore,
+you can define the labels to use for organizing your artifacts by using `anaconda_nightly_upload_labels`
+optional parameter. See below:
 
 ```yml
 jobs:
@@ -59,6 +61,7 @@ jobs:
         artifacts_path: dist
         anaconda_nightly_upload_url: my-alternative-scientific-channel
         anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
+        anaconda_nightly_upload_labels: main
 ```
 
 ## Artifact cleanup-policy at the ``scientific-python-nightly-wheels`` channel

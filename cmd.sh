@@ -33,6 +33,24 @@ if [ -z "${ANACONDA_TOKEN}" ]; then
   exit -1
 fi
 
+if [ -z "${ANACONDA_LABELS}" ]; then
+  echo "ANACONDA_LABELS is empty , using default label (main)..."
+  ANACONDA_LABELS="--label main"
+else
+  # Count the number of words in the string
+  label_count=$(echo "$ANACONDA_LABELS" | wc -w)
+  if [ "$label_count" -gt 1 ]; then
+    formatted_labels=""
+    for label in ${ANACONDA_LABELS}; do
+      formatted_labels+="--label $label "
+    done
+    ANACONDA_LABELS="${formatted_labels}"
+  else
+    ANACONDA_LABELS="--label $ANACONDA_LABELS"
+    echo "only 1 label, using option: $ANACONDA_LABELS"
+  fi
+fi
+
 # Install anaconda-client from lock file
 echo "Installing anaconda-client from upload-nightly-action conda-lock lock file..."
 micromamba create \
@@ -57,6 +75,6 @@ echo "Uploading wheels to anaconda.org..."
 anaconda --token "${ANACONDA_TOKEN}" upload \
   --force \
   --user "${ANACONDA_ORG}" \
-  --label "${ANACONDA_LABELS}" \
+  $ANACONDA_LABELS \
   "${INPUT_ARTIFACTS_PATH}"/*.whl
 echo "Index: https://pypi.anaconda.org/${ANACONDA_ORG}/simple"

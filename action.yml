@@ -21,7 +21,7 @@ inputs:
   anaconda_nightly_upload_labels:
     description: 'Labels assigned to the uploaded artifacts'
     required: false
-    default: [main]
+    default: main
 
 runs:
   using: 'docker'

@@ -19,7 +19,7 @@ inputs:
     required: false
     default: scientific-python-nightly-wheels
   anaconda_nightly_upload_labels:
-    description: 'Labels assigned to the uploaded artifacts'
+    description: 'List of labels assigned to the uploaded artifacts'
     required: false
     default: main
 

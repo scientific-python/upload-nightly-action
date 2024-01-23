@@ -21,7 +21,7 @@ ANACONDA_LABELS="${INPUT_ANACONDA_NIGHTLY_UPLOAD_LABELS}"
 # if the ANACONDA_ORG is empty, exit with status -1
 # this is to prevent attempt to upload to the wrong anaconda channel
 if [ -z "${ANACONDA_ORG}" ]; then
-  echo "ANACONDA_ORG is empty , exiting..."
+  echo "ANACONDA_ORG is empty, exiting..."
   exit -1
 fi
 
@@ -33,23 +33,24 @@ if [ -z "${ANACONDA_TOKEN}" ]; then
   exit -1
 fi
 
+# if the ANACONDA_LABELS is empty, exit with status -1
+# as this should be set in action.yml or by the user
+# and it is better to fail on this to sigal a problem.
 if [ -z "${ANACONDA_LABELS}" ]; then
-  echo "ANACONDA_LABELS is empty , using default label (main)..."
-  ANACONDA_LABELS="--label main"
-else
-  # Count the number of words in the string
-  label_count=$(echo "$ANACONDA_LABELS" | wc -w)
-  if [ "$label_count" -gt 1 ]; then
-    formatted_labels=""
-    for label in ${ANACONDA_LABELS}; do
-      formatted_labels+="--label $label "
-    done
-    ANACONDA_LABELS="${formatted_labels}"
-  else
-    ANACONDA_LABELS="--label $ANACONDA_LABELS"
-    echo "only 1 label, using option: $ANACONDA_LABELS"
-  fi
+  echo "ANACONDA_LABELS is empty, exiting..."
+  exit -1
 fi
+
+# convert newlines to commas for parsing
+# and ensure that there is no trailing comma
+ANACONDA_LABELS="$(tr '\n' ',' <<< "${ANACONDA_LABELS}" | sed 's/,$//')"
+
+IFS=',' read -ra LABELS <<< "${ANACONDA_LABELS}"
+
+LABEL_ARGS=""
+for label in "${LABELS[@]}"; do
+  LABEL_ARGS+="--label ${label} "
+done
 
 # Install anaconda-client from lock file
 echo "Installing anaconda-client from upload-nightly-action conda-lock lock file..."

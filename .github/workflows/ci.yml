@@ -34,7 +34,7 @@ jobs:
           python -m pip install build twine
           python -m pip list
 
-      - name: Build a wheel and a sdist
+      - name: Build v0.0.1 wheel and sdist
         run: |
           python -m build --outdir ./dist tests/test_package
 

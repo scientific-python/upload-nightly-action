@@ -53,7 +53,7 @@ jobs:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
 
-      - name: Build a wheel and a sdist
+      - name: Build v0.0.2 wheel and sdist
         run: |
           # Bump version to avoid wheel name conflicts
           sed -i 's/0.0.1/0.0.2/g' tests/test_package/pyproject.toml
@@ -67,7 +67,7 @@ jobs:
           anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
           anaconda_nightly_upload_labels: test
 
-      - name: Build a wheel and a sdist
+      - name: Build v0.0.3 wheel and sdist
         run: |
           # Bump version to avoid wheel name conflicts
           sed -i 's/0.0.2/0.0.3/g' tests/test_package/pyproject.toml

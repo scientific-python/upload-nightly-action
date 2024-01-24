@@ -67,9 +67,6 @@ micromamba activate upload-nightly-action
 # trim trailing slashes from $INPUT_ARTIFACTS_PATH
 INPUT_ARTIFACTS_PATH="${INPUT_ARTIFACTS_PATH%/}"
 
-# debug, print env
-env
-
 # upload wheels
 echo "Uploading wheels to anaconda.org..."
 

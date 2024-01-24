@@ -73,9 +73,11 @@ env
 # upload wheels
 echo "Uploading wheels to anaconda.org..."
 
+# Note: ${LABEL_ARGS} must not be quoted during shell parameter expansion,
+# else it will be treated as a file and not additional command arguments.
 anaconda --token "${ANACONDA_TOKEN}" upload \
   --force \
   --user "${ANACONDA_ORG}" \
-  $ANACONDA_LABELS \
+  ${LABEL_ARGS} \
   "${INPUT_ARTIFACTS_PATH}"/*.whl
 echo "Index: https://pypi.anaconda.org/${ANACONDA_ORG}/simple"

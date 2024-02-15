@@ -4,3 +4,5 @@ channels:
 dependencies:
   - python=3.11
   - anaconda-client==1.12.1
+  - curl>=8.5.0
+  - jq>=1.7.1

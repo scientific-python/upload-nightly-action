@@ -53,6 +53,12 @@ jobs:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
 
+      - name: Test upload that forces removal first
+        uses: ./
+        with:
+          artifacts_path: dist
+          anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
+
       - name: Build v0.0.2 wheel and sdist
         run: |
           # Bump version to avoid wheel name conflicts

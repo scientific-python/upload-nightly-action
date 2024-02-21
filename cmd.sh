@@ -67,6 +67,70 @@ micromamba activate upload-nightly-action
 # trim trailing slashes from $INPUT_ARTIFACTS_PATH
 INPUT_ARTIFACTS_PATH="${INPUT_ARTIFACTS_PATH%/}"
 
+get_wheel_name_version() {
+    local wheel_name="$1"
+    if [[ "${wheel_name}" =~ ^([[:alnum:]_-]+)-([0-9][^-]+)-(.+)$ ]]; then
+        # return the package_name and version_number
+        local return_values=("${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}")
+        echo "${return_values[@]}"
+    else
+        echo "The wheel name ${1} does not follow the PEP 491 spec (https://peps.python.org/pep-0491/) and is invalid."
+        return 1
+    fi
+}
+
+# get the unique package names from all the wheels
+package_names=()
+for wheel_path in "${INPUT_ARTIFACTS_PATH}"/*.whl; do
+  # remove the INPUT_ARTIFACTS_PATH/ prefix (including the /)
+  wheel_name="${wheel_path#${INPUT_ARTIFACTS_PATH}/}"
+  read -r package_basename_prefix _ <<< "$(get_wheel_name_version ${wheel_name})"
+  package_names+=("${package_basename_prefix}")
+done
+package_names=($(tr ' ' '\n' <<< "${package_names[@]}" | sort --unique | tr '\n' ' '))
+
+# If the package version doesn't exist on the package index then there will
+# be no files to overwrite and the package can be uploaded safely.
+# If the package version exists, is the only version on the package index,
+# and only has one distribution file, then that package needs to be removed
+# from the index before a wheel of the same name can be uploaded again.
+# c.f. https://github.com/Anaconda-Platform/anaconda-client/issues/702
+
+for package_basename_prefix in "${package_names[@]}"; do
+  # normalize package_name to use '-' as delimiter
+  package_name="${package_basename_prefix//_/-}"
+
+  number_releases=$(curl --silent https://api.anaconda.org/package/"${ANACONDA_ORG}/${package_name}" | \
+    jq -r '.releases' | \
+    jq length)
+
+  if [ "${number_releases}" -eq 1 ]; then
+    # get any wheel for the package (they should all have the same version)
+    wheel_path=$(find "${INPUT_ARTIFACTS_PATH}" -name "${package_basename_prefix}-*.whl" -print -quit)
+    wheel_name="${wheel_path#${INPUT_ARTIFACTS_PATH}/}"
+    read -r _ package_version <<< "$(get_wheel_name_version ${wheel_name})"
+
+    number_files=$(curl --silent https://api.anaconda.org/release/"${ANACONDA_ORG}/${package_name}/${package_version}" | \
+      jq -r '.distributions' | \
+      jq length)
+
+    if [ "${number_files}" -eq 1 ]; then
+      distribution_name=$(curl --silent https://api.anaconda.org/release/"${ANACONDA_ORG}/${package_name}/${package_version}" | \
+        jq -r '.distributions[].basename')
+
+      if [ "${wheel_name}" = "${distribution_name}" ]; then
+        echo -e "\n# ${distribution_name} is the only distribution file uploaded for the package https://anaconda.org/${ANACONDA_ORG}/${package_name}"
+        echo "# To avoid https://github.com/Anaconda-Platform/anaconda-client/issues/702 remove the existing release before uploading."
+
+        echo -e "\n# Removing ${ANACONDA_ORG}/${package_name}/${package_version}"
+        anaconda --token "${ANACONDA_TOKEN}" remove \
+          --force \
+          "${ANACONDA_ORG}/${package_name}/${package_version}"
+      fi
+    fi
+  fi
+done
+
 # upload wheels
 echo "Uploading wheels to anaconda.org..."
 

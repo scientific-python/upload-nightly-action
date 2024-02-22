@@ -2,7 +2,5 @@ name: upload-nightly-action
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
-  - anaconda-client==1.12.1
-  - curl>=8.5.0
-  - jq>=1.7.1
+  - python=3.12
+  - anaconda-client==1.12.3

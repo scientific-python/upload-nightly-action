@@ -35,8 +35,8 @@ jobs:
         with:
           environment-name: remove-wheels
           create-args: >-
-            python=3.11
-            anaconda-client=1.12.1
+            python=3.12
+            anaconda-client=1.12.3
             curl
             jq
 

@@ -101,7 +101,7 @@ jobs:
         with:
           environment-name: remove-wheels
           create-args: >-
-            python=3.11
+            python=3.12
             anaconda-client
 
       - name: Remove test package upload

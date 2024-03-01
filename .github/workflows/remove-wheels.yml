@@ -82,10 +82,17 @@ jobs:
                         tail --lines 1 | \
                         awk '{print $1}')
 
-                    if [[ "${upload_date}" < "${threshold_date}" ]]; then
-                        echo "# ${ANACONDA_USER}/${package_name}/${package_version} last uploaded on ${upload_date}"
-                        echo "${package_version}" >> remove-package-versions.txt
+                    # check upload_date is YYYY-MM-DD formatted
+                    # c.f. https://github.com/scientific-python/upload-nightly-action/issues/73
+                    if [[ "${upload_date}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+                        if [[ "${upload_date}" < "${threshold_date}" ]]; then
+                            echo "# ${ANACONDA_USER}/${package_name}/${package_version} last uploaded on ${upload_date}"
+                            echo "${package_version}" >> remove-package-versions.txt
+                        fi
+                    else
+                        echo "# ERROR: ${ANACONDA_USER}/${package_name}/${package_version} upload date ${upload_date} is not YYYY-MM-DD."
                     fi
+
                   done
 
                   if [ -s remove-package-versions.txt ]; then

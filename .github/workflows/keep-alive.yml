@@ -18,7 +18,7 @@ jobs:
       group: ${{ github.workflow }}-${{ github.ref }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29  # v4.1.6
 
     - name: Create a minimal payload
       run: |

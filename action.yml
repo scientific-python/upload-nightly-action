@@ -5,7 +5,7 @@ permissions:
   contents: read
   metadata: read
 author: "Scientific-Python"
-version: "0.1.0"
+version: "0.5.0"
 
 inputs:
   artifacts_path:
@@ -24,5 +24,23 @@ inputs:
     default: main
 
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: "composite"
+  steps:
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659  # v0.8.1
+      with:
+        locked: true
+        cache: true
+        cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+        # Avoid post cleanup errors if action run multiple times
+        post-cleanup: false
+
+    - name: Upload wheels
+      shell: bash
+      env:
+        INPUT_ARTIFACTS_PATH: ${{ inputs.artifacts_path }}
+        INPUT_ANACONDA_NIGHTLY_UPLOAD_ORGANIZATION: ${{ inputs.anaconda_nightly_upload_organization }}
+        INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN: ${{ inputs.anaconda_nightly_upload_token }}
+        INPUT_ANACONDA_NIGHTLY_UPLOAD_LABELS: ${{ inputs.anaconda_nightly_upload_labels }}
+      run: |
+        pixi run cmd.sh

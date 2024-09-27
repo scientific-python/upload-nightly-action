@@ -1,0 +1,49 @@
+name: Scientific Python / Remove Old Wheels
+description: A GitHub Action to remove old wheel artifacts from Anaconda Cloud
+permissions:
+  actions: read
+  contents: read
+  metadata: read
+author: "Scientific-Python"
+# TODO: have to think about versioning; whether to version separately, or
+# for it to be in sync with the version for the upload action
+version: "0.1.0"
+
+inputs:
+  n_latest_uploads:
+    description: "The number of previous artifact uploads to keep"
+    required: false
+    default: "5"
+  anaconda_nightly_upload_organization:
+    description: "Anaconda Cloud organisation name to remove the wheels from"
+    required: false
+    default: scientific-python-nightly-wheels
+  anaconda_nightly_remove_token:
+    description: "Anaconda Cloud API token"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659  # v0.8.1
+      with:
+        locked: true
+        cache: true
+        cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+        # Avoid post cleanup errors if action run multiple times
+        post-cleanup: false
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        pixi run pip install anaconda-client==1.12.3 curl jq
+
+    - name: Remove old wheels
+      shell: bash
+      env:
+        INPUT_N_LATEST_UPLOADS: ${{ inputs.n_latest_uploads }}
+        INPUT_ANACONDA_USER: ${{ inputs.anaconda_user }}
+        INPUT_ANACONDA_TOKEN: ${{ inputs.anaconda_token }}
+      run: |
+        pixi run remove_old_wheels.sh

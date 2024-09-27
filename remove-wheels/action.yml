@@ -11,15 +11,15 @@ version: "0.1.0"
 
 inputs:
   n_latest_uploads:
-    description: "The number of previous artifact uploads to keep"
+    description: 'The number of previous wheel uploads to keep'
     required: false
-    default: "5"
-  anaconda_nightly_upload_organization:
-    description: "Anaconda Cloud organisation name to remove the wheels from"
+    default: '5'
+  anaconda_user:
+    description: 'Anaconda Cloud organisation name to remove the wheels from'
     required: false
     default: scientific-python-nightly-wheels
-  anaconda_nightly_remove_token:
-    description: "Anaconda Cloud API token"
+  anaconda_token:
+    description: 'Anaconda Cloud API token'
     required: true
 
 runs:

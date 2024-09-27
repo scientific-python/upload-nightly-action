@@ -30,13 +30,14 @@ fi
 # if the ANACONDA_TOKEN is empty, exit with status -1
 # this is to prevent accidental removals
 if [ -z "${ANACONDA_TOKEN}" ]; then
-  echo "ANACONDA_TOKEN is empty , exiting..."
+  echo "ANACONDA_TOKEN is empty, exiting..."
   exit -1
 fi
 
 # if the N_LATEST_UPLOADS is empty, exit with status -1
-# as this should be set in action.yml or by the user
-# and it is better to fail on this to signal a problem.
+# as this should be set in by the user and it is better
+# to fail on this to signal a problem. i.e.,
+# explicit is better than implicit.
 if [ -z "${N_LATEST_UPLOADS}" ]; then
   echo "N_LATEST_UPLOADS is empty, exiting..."
   exit -1
@@ -44,10 +45,14 @@ fi
 
 
 # Query the package index for packages
+#
 # TODO: should be possible to alter this, since separating the workflow
 # into two steps, one for uploading and one for cleanup, should make it
 # possible for users to manually trigger the cleanup step before/after the
-# upload step has completed.
+# upload step has completed in their own repos instead of us having to do it.
+#
+# TODO: raises questions on how to moderate cleanups among multiple users
+# operating on the same channel, but that might be a different issue.
 curl https://raw.githubusercontent.com/scientific-python/upload-nightly-action/main/packages-ignore-from-cleanup.txt --output packages-ignore-from-cleanup.txt
 anaconda show "${ANACONDA_USER}" &> >(grep "${ANACONDA_USER}/") | \
     awk '{print $1}' | \
@@ -62,6 +67,9 @@ if [ -s package-names.txt ]; then
 
     # Remember can't quote subshell as need to split on (space separated) token
     for package_name in $(cat package-names.txt); do
+    # TODO: this outer loop can be removed when ready since there will be
+    # just one package to remove when the action is triggered manually from
+    # a user's (different) repo.
 
         echo -e "\n# package: ${package_name}"
 

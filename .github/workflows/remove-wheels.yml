@@ -3,7 +3,7 @@ name: Remove old wheels
 on:
   # Run daily at 1:23 UTC
   schedule:
-  - cron:  '23 1 * * *'
+    - cron: '23 1 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -30,16 +30,7 @@ jobs:
       name: remove-old-wheels
 
     steps:
-      - name: Install micromamba and anaconda-client
-        uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822  # v1.9.0
-        with:
-          environment-name: remove-wheels
-          create-args: >-
-            python=3.12
-            anaconda-client=1.12.3
-            curl
-            jq
-
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
       - name: Show environment
         run: env
 
@@ -49,64 +40,9 @@ jobs:
           echo ""
           anaconda remove --help
 
-      - name: Query package index for packages
-        run: |
-          curl https://raw.githubusercontent.com/scientific-python/upload-nightly-action/main/packages-ignore-from-cleanup.txt --output packages-ignore-from-cleanup.txt
-          anaconda show "${ANACONDA_USER}" &> >(grep "${ANACONDA_USER}/") | \
-              awk '{print $1}' | \
-              sed 's|.*/||g' | \
-              grep -vf packages-ignore-from-cleanup.txt > package-names.txt
-
-      - name: Remove old uploads to save space
-        run: |
-          # Remove all _but_ the last ${N_LATEST_UPLOADS} package versions and
-          # remove all package versions older than 30 days.
-
-          if [ -s package-names.txt ]; then
-              threshold_date="$(date +%F -d '30 days ago')"
-
-              # Remember can't quote subshell as need to split on (space seperated) token
-              for package_name in $(cat package-names.txt); do
-
-                  echo -e "\n# package: ${package_name}"
-
-                  curl --silent https://api.anaconda.org/package/"${ANACONDA_USER}/${package_name}" | \
-                      jq -r '.releases[].version' > package-versions.txt
-                  head --lines "-${N_LATEST_UPLOADS}" package-versions.txt > remove-package-versions.txt
-
-                  for package_version in $(cat package-versions.txt); do
-                    # c.f. https://github.com/Anaconda-Platform/anaconda-client/issues/682#issuecomment-1677283067
-                    upload_date=$(curl --silent https://api.anaconda.org/release/"${ANACONDA_USER}/${package_name}/${package_version}" | \
-                        jq -r '.distributions[].upload_time' | \
-                        sort | \
-                        tail --lines 1 | \
-                        awk '{print $1}')
-
-                    # check upload_date is YYYY-MM-DD formatted
-                    # c.f. https://github.com/scientific-python/upload-nightly-action/issues/73
-                    if [[ "${upload_date}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-                        if [[ "${upload_date}" < "${threshold_date}" ]]; then
-                            echo "# ${ANACONDA_USER}/${package_name}/${package_version} last uploaded on ${upload_date}"
-                            echo "${package_version}" >> remove-package-versions.txt
-                        fi
-                    else
-                        echo "# ERROR: ${ANACONDA_USER}/${package_name}/${package_version} upload date ${upload_date} is not YYYY-MM-DD."
-                    fi
-
-                  done
-
-                  if [ -s remove-package-versions.txt ]; then
-                      # Guard against duplicate entries from packages over
-                      # count and time thresholds
-                      sort --output remove-package-versions.txt --unique remove-package-versions.txt
-
-                      for package_version in $(cat remove-package-versions.txt); do
-                          echo "# Removing ${ANACONDA_USER}/${package_name}/${package_version}"
-                          anaconda --token ${{ secrets.ANACONDA_TOKEN }} remove \
-                            --force \
-                            "${ANACONDA_USER}/${package_name}/${package_version}"
-                      done
-                  fi
-
-              done
-          fi
+      - name: Remove old wheels
+        uses: ./remove-wheels
+        with:
+          n_latest_uploads: ${{ env.N_LATEST_UPLOADS }}
+          anaconda_org: ${{ env.ANACONDA_USER }}
+          anaconda_token: ${{ secrets.ANACONDA_TOKEN }}

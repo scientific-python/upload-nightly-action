@@ -18,11 +18,11 @@ ANACONDA_USER="${INPUT_ANACONDA_USER}"
 ANACONDA_TOKEN="${INPUT_ANACONDA_TOKEN}"
 N_LATEST_UPLOADS="${INPUT_N_LATEST_UPLOADS}"
 
-# if the ANACONDA_ORG is empty, exit with status -1
+# if the ANACONDA_USER is empty, exit with status -1
 # this is to prevent attempts to remove from the wrong anaconda channel
 # whcih should fail anyway, but it is better to fail early?
-if [ -z "${ANACONDA_ORG}" ]; then
-  echo "ANACONDA_ORG is empty, exiting..."
+if [ -z "${ANACONDA_USER}" ]; then
+  echo "ANACONDA_USER is empty, exiting..."
   exit -1
 fi
 

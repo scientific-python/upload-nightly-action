@@ -4,7 +4,7 @@ channels = ["conda-forge"]
 description = "Environment for the scientific-python/upload-nightly-action GitHub action"
 name = "upload-nightly-action"
 platforms = ["linux-64", "osx-64", "osx-arm64"]
-version = "0.5.0"
+version = "0.6.0"
 
 [tasks]
 

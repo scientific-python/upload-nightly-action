@@ -1,5 +1,5 @@
 name: Scientific Python / Remove Old Wheels
-description: A GitHub Action to remove old wheel artifacts from Anaconda Cloud
+description: A GitHub Action to remove old wheels
 permissions:
   actions: read
   contents: read

@@ -14,8 +14,8 @@ set -x
 # this is to prevent accidental removals
 echo "Getting anaconda token from github secrets..."
 
-ANACONDA_ORG="${INPUT_ANACONDA_NIGHTLY_UPLOAD_ORGANIZATION}"
-ANACONDA_TOKEN="${INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN}"
+ANACONDA_USER="${INPUT_ANACONDA_USER}"
+ANACONDA_TOKEN="${INPUT_ANACONDA_TOKEN}"
 N_LATEST_UPLOADS="${INPUT_N_LATEST_UPLOADS}"
 
 # if the ANACONDA_ORG is empty, exit with status -1

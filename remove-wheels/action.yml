@@ -22,6 +22,7 @@ inputs:
     description: 'Anaconda Cloud API token'
     required: true
 
+# TODO: Linux only for now, need to see how to add macOS support
 runs:
   using: "composite"
   steps:

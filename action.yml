@@ -1,4 +1,4 @@
-name: Upload Nightly
+name: Scientific Python / Upload Nightly Wheels
 description: A GitHub Action to upload artifacts nightly
 permissions:
   actions: read

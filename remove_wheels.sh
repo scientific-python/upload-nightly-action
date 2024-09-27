@@ -19,7 +19,8 @@ ANACONDA_TOKEN="${INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN}"
 N_LATEST_UPLOADS="${INPUT_N_LATEST_UPLOADS}"
 
 # if the ANACONDA_ORG is empty, exit with status -1
-# this is to prevent attempt to remove from the wrong anaconda channel
+# this is to prevent attempts to remove from the wrong anaconda channel
+# whcih should fail anyway, but it is better to fail early?
 if [ -z "${ANACONDA_ORG}" ]; then
   echo "ANACONDA_ORG is empty, exiting..."
   exit -1
@@ -105,4 +106,4 @@ if [ -s package-names.txt ]; then
     done
 fi
 
-echo "Finished removing old wheels from ${ANACONDA_USER} channel and ${N_LATEST_UPLOADS} latest uploads."
+echo "Finished removing old wheels except the last ${N_LATEST_UPLOADS} uploads from the ${ANACONDA_USER} channel."

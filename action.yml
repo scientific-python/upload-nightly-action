@@ -34,6 +34,8 @@ runs:
         cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
         # Avoid post cleanup errors if action run multiple times
         post-cleanup: false
+        # Action consumers should load the lock file from the action repo
+        manifest-path: ${{ github.action_path }}/pixi.toml
 
     - name: Upload wheels
       shell: bash
@@ -43,4 +45,4 @@ runs:
         INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN: ${{ inputs.anaconda_nightly_upload_token }}
         INPUT_ANACONDA_NIGHTLY_UPLOAD_LABELS: ${{ inputs.anaconda_nightly_upload_labels }}
       run: |
-        pixi run upload_wheels.sh
+        pixi run ${{ github.action_path }}/upload_wheels.sh

@@ -18,14 +18,6 @@ ANACONDA_USER="${INPUT_ANACONDA_USER}"
 ANACONDA_TOKEN="${INPUT_ANACONDA_TOKEN}"
 N_LATEST_UPLOADS="${INPUT_N_LATEST_UPLOADS}"
 
-# if the ANACONDA_USER is empty, exit with status -1
-# this is to prevent attempts to remove from the wrong anaconda channel
-# whcih should fail anyway, but it is better to fail early?
-if [ -z "${ANACONDA_USER}" ]; then
-  echo "ANACONDA_USER is empty, exiting..."
-  exit -1
-fi
-
 
 # if the ANACONDA_TOKEN is empty, exit with status -1
 # this is to prevent accidental removals

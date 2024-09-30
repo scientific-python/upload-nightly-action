@@ -14,7 +14,7 @@ inputs:
     description: 'The number of previous wheel uploads to keep'
     required: false
     default: '5'
-  anaconda_user:
+  anaconda_nightly_upload_organization:
     description: 'Anaconda Cloud organisation name to remove the wheels from'
     required: false
     default: scientific-python-nightly-wheels

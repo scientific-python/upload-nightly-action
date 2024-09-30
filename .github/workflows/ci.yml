@@ -22,6 +22,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+        # Don't rely on the action's path being in the current directory
+        with:
+          path: '_action_path'
 
       - name: Set up Python
         uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3  # v5.2.0
@@ -36,7 +39,7 @@ jobs:
 
       - name: Build v0.0.1 wheel and sdist
         run: |
-          python -m build --outdir ./dist tests/test_package
+          python -m build --outdir ./dist _action_path/tests/test_package
 
       - name: Verify the distribution
         run: twine check --strict dist/*
@@ -48,13 +51,13 @@ jobs:
         run: python -m zipfile --list dist/test_package-*.whl
 
       - name: Test upload
-        uses: ./
+        uses: ./_action_path/
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
 
       - name: Test upload that forces removal first
-        uses: ./
+        uses: ./_action_path/
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
@@ -62,12 +65,12 @@ jobs:
       - name: Build v0.0.2 wheel and sdist
         run: |
           # Bump version to avoid wheel name conflicts
-          sed -i 's/0.0.1/0.0.2/g' tests/test_package/pyproject.toml
+          sed -i 's/0.0.1/0.0.2/g' _action_path/tests/test_package/pyproject.toml
           rm ./dist/*
-          python -m build --outdir ./dist tests/test_package
+          python -m build --outdir ./dist _action_path/tests/test_package
 
       - name: Test upload with non-main label
-        uses: ./
+        uses: ./_action_path/
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
@@ -76,12 +79,12 @@ jobs:
       - name: Build v0.0.3 wheel and sdist
         run: |
           # Bump version to avoid wheel name conflicts
-          sed -i 's/0.0.2/0.0.3/g' tests/test_package/pyproject.toml
+          sed -i 's/0.0.2/0.0.3/g' _action_path/tests/test_package/pyproject.toml
           rm ./dist/*
-          python -m build --outdir ./dist tests/test_package
+          python -m build --outdir ./dist _action_path/tests/test_package
 
       - name: Test upload with multiple labels
-        uses: ./
+        uses: ./_action_path/
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}

@@ -12,7 +12,7 @@ jobs:
   steps:
     ...
     - name: Upload wheel
-      uses: scientific-python/upload-nightly-action@ccf29c805b5d0c1dc31fa97fcdb962be074cade3 # 0.6.0
+      uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
       with:
         artifacts_path: dist
         anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
@@ -57,7 +57,7 @@ jobs:
   steps:
     ...
     - name: Upload wheel
-      uses: scientific-python/upload-nightly-action@ccf29c805b5d0c1dc31fa97fcdb962be074cade3 # 0.6.0
+      uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
       with:
         artifacts_path: dist
         anaconda_nightly_upload_organization: my-alternative-organization

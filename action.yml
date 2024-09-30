@@ -45,4 +45,4 @@ runs:
         INPUT_ANACONDA_NIGHTLY_UPLOAD_TOKEN: ${{ inputs.anaconda_nightly_upload_token }}
         INPUT_ANACONDA_NIGHTLY_UPLOAD_LABELS: ${{ inputs.anaconda_nightly_upload_labels }}
       run: |
-        pixi run $GITHUB_ACTION_PATH/upload_wheels.sh
+        pixi run ${{ github.action_path }}/upload_wheels.sh

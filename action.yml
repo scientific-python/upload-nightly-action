@@ -35,7 +35,7 @@ runs:
         # Avoid post cleanup errors if action run multiple times
         post-cleanup: false
         # Action consumers should load the lock file from the action repo
-        manifest-path: $GITHUB_ACTION_PATH/pixi.toml
+        manifest-path: ${{ github.action_path }}/pixi.toml
 
     - name: Upload wheels
       shell: bash

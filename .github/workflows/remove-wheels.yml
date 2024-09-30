@@ -44,5 +44,5 @@ jobs:
         uses: ./remove-wheels
         with:
           n_latest_uploads: ${{ env.N_LATEST_UPLOADS }}
-          anaconda_org: ${{ env.ANACONDA_USER }}
+          anaconda_nightly_upload_organization: ${{ env.ANACONDA_USER }}
           anaconda_token: ${{ secrets.ANACONDA_TOKEN }}

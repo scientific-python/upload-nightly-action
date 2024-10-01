@@ -46,5 +46,4 @@ runs:
         INPUT_N_LATEST_UPLOADS: ${{ inputs.n_latest_uploads }}
         INPUT_ANACONDA_USER: ${{ inputs.anaconda_user }}
         INPUT_ANACONDA_TOKEN: ${{ inputs.anaconda_token }}
-      run: |
-        pixi run remove_old_wheels.sh
+      run: pixi run remove_old_wheels.sh

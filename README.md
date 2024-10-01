@@ -97,6 +97,15 @@ jobs:
         anaconda_nightly_upload_labels: dev
 ```
 
+Similarly, to delete old wheels from a different channel, you can use the `anaconda_nightly_organization`
+parameter as described above.
+
+Please note that the `anaconda_nightly_token` secret must have the necessary permissions to
+remove artifacts from the channel. A token for a particular package will delete only the
+artifacts uploaded by that package. If you need to delete artifacts uploaded by other packages
+similar to the `scientific-python-nightly-wheels` channel here, you will need to use a token
+for the organization with higher permissions that lets you delete packages organization-wide.
+
 ## Artifact cleanup-policy at the ``scientific-python-nightly-wheels`` channel
 
 To avoid hosting outdated development versions, as well as to clean up space, we do have a

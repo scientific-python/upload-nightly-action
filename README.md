@@ -1,8 +1,7 @@
 # Nightly upload
 
-This is a GitHub Action that uploads (and helps remove) nightly builds to
-the [scientific-python nightly channel][], as recommended in
-[SPEC4 — Using and Creating Nightly Wheels][].
+This is a GitHub Action that uploads nightly builds to the [scientific-python nightly channel][],
+as recommended in [SPEC4 — Using and Creating Nightly Wheels][].
 
 In a GitHub Actions workflow (`.github/workflows/*.yaml`), use the
 following snippet on a Linux or macOS runner to upload built wheels to the
@@ -16,7 +15,7 @@ jobs:
       uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
       with:
         artifacts_path: dist
-        anaconda_nightly_upload_token: ${{secrets.ANACONDA_TOKEN}}
+        anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
 ```
 
 > [!IMPORTANT]

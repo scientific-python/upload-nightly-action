@@ -96,16 +96,13 @@ jobs:
       name: remove-old-wheels
 
     steps:
-      - name: Install micromamba and anaconda-client
-        uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822  # v1.9.0
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659  # v0.8.1
         with:
-          environment-name: remove-wheels
-          create-args: >-
-            python=3.12
-            anaconda-client
+          run-install: false
 
       - name: Remove test package upload
-        shell: bash -l {0}
+        shell: pixi exec --spec anaconda-client -- bash -e {0}
         run: |
             anaconda --token ${{ secrets.ANACONDA_TOKEN }} remove \
               --force \

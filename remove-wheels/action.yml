@@ -22,7 +22,6 @@ inputs:
     description: 'Anaconda Cloud API token to authenticate with'
     required: true
 
-# TODO: Linux only for now, need to see how to add macOS support
 runs:
   using: "composite"
   steps:
@@ -34,11 +33,8 @@ runs:
         cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
         # Avoid post cleanup errors if action run multiple times
         post-cleanup: false
-
-    - name: Install dependencies
-      shell: bash
-      run: |
-        sudo apt-get update && sudo apt-get install -y curl jq
+        # Action consumers should load the lock file from the action repo
+        manifest-path: ${{ github.action_path }}/pixi.toml
 
     - name: Remove old wheels
       shell: bash
@@ -46,4 +42,5 @@ runs:
         INPUT_N_LATEST_UPLOADS: ${{ inputs.n_latest_uploads }}
         INPUT_ANACONDA_USER: ${{ inputs.anaconda_user }}
         INPUT_ANACONDA_TOKEN: ${{ inputs.anaconda_token }}
-      run: pixi run remove_old_wheels.sh
+      run: |
+        pixi run --manifest-path ${{ github.action_path }}/pixi.toml ${{ github.action_path }}/remove_wheels.sh

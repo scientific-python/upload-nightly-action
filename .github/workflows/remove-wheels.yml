@@ -45,4 +45,4 @@ jobs:
         with:
           n_latest_uploads: ${{ env.N_LATEST_UPLOADS }}
           anaconda_nightly_upload_organization: ${{ env.ANACONDA_USER }}
-          anaconda_token: ${{ secrets.ANACONDA_TOKEN }}
+          anaconda_nightly_token: ${{ secrets.ANACONDA_TOKEN }}

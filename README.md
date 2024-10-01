@@ -16,7 +16,7 @@ jobs:
       uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
       with:
         artifacts_path: dist
-        anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
+        anaconda_nightly_upload_token: ${{secrets.ANACONDA_TOKEN}}
 ```
 
 > [!IMPORTANT]
@@ -39,7 +39,7 @@ jobs:
       with:
         n_latest_uploads: ${{ env.N_LATEST_UPLOADS }}
         anaconda_nightly_upload_organization: "your-organization"
-        anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
+        anaconda_nightly_token: ${{secrets.ANACONDA_TOKEN}}
 ```
 
 Which will remove all but the `n_latest_uploads` latest uploads from the channel. This is useful

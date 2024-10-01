@@ -18,8 +18,8 @@ inputs:
     description: 'Anaconda Cloud organisation name to remove the wheels from'
     required: false
     default: scientific-python-nightly-wheels
-  anaconda_token:
-    description: 'Anaconda Cloud API token'
+  anaconda_nightly_token:
+    description: 'Anaconda Cloud API token to authenticate with'
     required: true
 
 # TODO: Linux only for now, need to see how to add macOS support

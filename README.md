@@ -38,24 +38,22 @@ jobs:
       uses: scientific-python/upload-nightly-action/remove-wheels@cantknowhashyet # 0.6.0
       with:
         n_latest_uploads: ${{ env.N_LATEST_UPLOADS }}
+        anaconda_nightly_upload_organization: "your-organization"
         anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
 ```
 
 Which will remove all but the `n_latest_uploads` latest uploads from the channel. This is useful
 to avoid hosting outdated development versions, as well as to clean up space.
 
-The channel to remove wheels from is set to the ``scientific-python-nightly-wheels`` channel
-by default. If you are using this channel, please note that this repository will automatically
-clean up old artifacts for you.
+Note that the ``scientific-python-nightly-wheels`` channel, specifically, already removes
+old artifacts daily. The `remove-wheels` action is, therefore, intended for use with
+other channels.
 
-If you do not wish to have this automated cleanup, please open an issue on this repository
-to be added to the list of packages exempt from it. The current ones are named in 
-`packages-ignore-from-cleanup.txt`.
+If you do not wish to have this automated cleanup, please [open an issue](https://github.com/scientific-python/upload-nightly-action/)
+to be added to the list of packages exempt from it. The current ones are named in
+[`packages-ignore-from-cleanup.txt`](packages-ignore-from-cleanup.txt).
 
 Please refer to the [artifact cleanup policy][] for more information.
-
-To remove wheels from a different channel, set the ``anaconda_nightly_upload_organization``
-variable to the desired organization.
 
 ## Updating the actions
 
@@ -80,7 +78,7 @@ then generate a token at `https://anaconda.org/<anaconda cloud user name>/settin
 with permissions to _Allow write access to the API site_ and _Allow uploads to Standard Python repositories_,
 and add the token as a secret to your GitHub repository.
 
-## Using a different channel other than ``scientific-python-nightly-wheels``
+## Using a channel other than ``scientific-python-nightly-wheels``
 
 This Github Action can upload your nightly builds to a different channel. To do so,
 define the `anaconda_nightly_upload_organization` variable. Furthermore,

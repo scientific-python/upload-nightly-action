@@ -27,6 +27,20 @@ being compromised.
 
 This repository also ships with an action to ease removals of older nightly wheels from a channel.
 
+Please note that the default configuration below will remove all but the `n_latest_uploads`
+latest uploads from the channel. This is useful to avoid hosting outdated development
+versions, as well as to clean up space.
+
+Note that the ``scientific-python-nightly-wheels`` channel, specifically, already removes
+old artifacts daily. The `remove-wheels` action is, therefore, intended for use with
+other channels.
+
+If you do not wish to have this automated cleanup, please [open an issue](https://github.com/scientific-python/upload-nightly-action/)
+to be added to the list of packages exempt from it. The current ones are named in
+[`packages-ignore-from-cleanup.txt`](packages-ignore-from-cleanup.txt).
+
+Please refer to the [artifact cleanup policy][] for more information.
+
 To use this functionality, add the following snippet to your workflow:
 
 ```yml
@@ -40,19 +54,6 @@ jobs:
         anaconda_nightly_upload_organization: "your-organization"
         anaconda_nightly_token: ${{secrets.ANACONDA_TOKEN}}
 ```
-
-Which will remove all but the `n_latest_uploads` latest uploads from the channel. This is useful
-to avoid hosting outdated development versions, as well as to clean up space.
-
-Note that the ``scientific-python-nightly-wheels`` channel, specifically, already removes
-old artifacts daily. The `remove-wheels` action is, therefore, intended for use with
-other channels.
-
-If you do not wish to have this automated cleanup, please [open an issue](https://github.com/scientific-python/upload-nightly-action/)
-to be added to the list of packages exempt from it. The current ones are named in
-[`packages-ignore-from-cleanup.txt`](packages-ignore-from-cleanup.txt).
-
-Please refer to the [artifact cleanup policy][] for more information.
 
 ## Updating the actions
 

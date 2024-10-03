@@ -23,7 +23,7 @@ jobs:
 (rather than a tag), to guard against the unlikely event of upstream
 being compromised.
 
-# Removing old nightly builds
+## Removing old nightly builds
 
 This repository also ships with an action to ease removals of older nightly wheels from a channel.
 

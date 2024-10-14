@@ -32,7 +32,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@c9aa747934b6867b18bf8f6624a8929c4f76147b # v3.1.4
+        uses: astral-sh/setup-uv@f731690a1dacb2f6393acc910887b8cda1a97789 # v3.1.6
 
       - name: Build v0.0.1 wheel and sdist
         run: |

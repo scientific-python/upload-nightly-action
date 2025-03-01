@@ -32,7 +32,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@4db96194c378173c656ce18a155ffc14a9fc4355 # v5.2.2
+        uses: astral-sh/setup-uv@f94ec6bedd8674c4426838e6b50417d36b6ab231 # v5.3.1
 
       - name: Build v0.0.1 wheel and sdist
         run: |
@@ -97,7 +97,7 @@ jobs:
 
     steps:
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659  # v0.8.1
+        uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d  # v0.8.3
         with:
           run-install: false
 

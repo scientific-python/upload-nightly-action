@@ -27,12 +27,12 @@ jobs:
           path: '_action_path'
 
       - name: Set up Python
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38  # v5.4.0
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55  # v5.5.0
         with:
           python-version: '3.x'
 
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@f94ec6bedd8674c4426838e6b50417d36b6ab231 # v5.3.1
+        uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182 # v5.4.1
 
       - name: Build v0.0.1 wheel and sdist
         run: |
@@ -97,7 +97,7 @@ jobs:
 
     steps:
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d  # v0.8.3
+        uses: prefix-dev/setup-pixi@8eaba7c61d661f73d558b0b477156b7b62667fa4  # v0.8.4
         with:
           run-install: false
 

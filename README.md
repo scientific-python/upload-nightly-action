@@ -12,7 +12,7 @@ jobs:
   steps:
     ...
     - name: Upload wheel
-      uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
+      uses: scientific-python/upload-nightly-action@b36e8c0c10dbcfd2e05bf95f17ef8c14fd708dbf # 0.6.2
       with:
         artifacts_path: dist
         anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
@@ -74,7 +74,7 @@ updates:
 
 To request access to the wheel channel, please open an issue on [the upload action's
 repository](https://github.com/scientific-python/upload-nightly-action). You can
-then generate a token at `https://anaconda.org/<anaconda cloud user name>/settings/access`
+then generate a token at `https://anaconda.org/<anaconda.org user name>/settings/access`
 with permissions to _Allow write access to the API site_ and _Allow uploads to Standard Python repositories_,
 and add the token as a secret to your GitHub repository.
 
@@ -90,7 +90,7 @@ jobs:
   steps:
     ...
     - name: Upload wheel
-      uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
+      uses: scientific-python/upload-nightly-action@b36e8c0c10dbcfd2e05bf95f17ef8c14fd708dbf # 0.6.2
       with:
         artifacts_path: dist
         anaconda_nightly_upload_organization: my-alternative-organization

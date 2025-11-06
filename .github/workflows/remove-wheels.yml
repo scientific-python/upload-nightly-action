@@ -20,14 +20,55 @@ env:
   ANACONDA_USER: "scientific-python-nightly-wheels"
 
 jobs:
-  remove:
-
+  get-pkgs:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'scientific-python'
     # Set required workflow secrets in the environment for additional security
     # https://github.com/scientific-python/upload-nightly-action/settings/environments
     environment:
       name: remove-old-wheels
+
+    outputs:
+      pkg-names: ${{ steps.set-outputs.outputs.pkgnames }}
+
+    steps:
+      - name: Install micromamba and anaconda-client
+        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462  # v2.0.7
+        with:
+          environment-name: remove-wheels
+          create-args: >-
+            python=3.12
+            anaconda-client=1.12.3
+
+      - name: Show environment
+        run: env
+
+      - name: Show CLI API info
+        run: |
+          anaconda show --help
+          echo ""
+          anaconda remove --help
+
+      - name: Generate list of names
+        id: set-outputs
+        run: |
+          python -c "from binstar_client.utils import get_server_api; api = get_server_api(token='$ANACONDA_TOKEN'); pkgs = [p['name'] for p in api.user_packages('scientific-python-nightly-wheels')]; pkgs.pop('openblas-libs'); print(pkgs)"
+        env:
+          ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+
+  remove:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'scientific-python'
+    # Set required workflow secrets in the environment for additional security
+    # https://github.com/scientific-python/upload-nightly-action/settings/environments
+    environment:
+      name: remove-old-wheels
+
+    needs: [get-pkgs]
+
+    strategy:
+      matrix:
+        pkgname: ${{fromJSON(needs.get-pkgs.outputs.pkgnames)}}
 
     steps:
       - name: Install micromamba and anaconda-client
@@ -55,3 +96,5 @@ jobs:
           n_latest_uploads: ${{ env.N_LATEST_UPLOADS }}
           anaconda_nightly_upload_organization: ${{ env.ANACONDA_USER }}
           anaconda_nightly_token: ${{ secrets.ANACONDA_TOKEN }}
+          package_name: ${{ matrix.pkgname }}
+

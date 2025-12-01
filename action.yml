@@ -1,9 +1,5 @@
 name: Upload Nightly
 description: A GitHub Action to upload artifacts nightly
-permissions:
-  actions: read
-  contents: read
-  metadata: read
 author: "Scientific-Python"
 version: "0.6.2"
 

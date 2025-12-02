@@ -1,4 +1,4 @@
-name: Upload Nightly
+name: Scientific Python / Upload Nightly Wheels
 description: A GitHub Action to upload artifacts nightly
 author: "Scientific-Python"
 version: "0.6.2"

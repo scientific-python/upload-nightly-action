@@ -3,7 +3,7 @@ authors = ["Scientific Python"]
 channels = ["conda-forge"]
 description = "Environment for the scientific-python/upload-nightly-action GitHub action"
 name = "upload-nightly-action"
-platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
 version = "0.6.2"
 
 [tasks]

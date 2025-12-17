@@ -1,7 +1,7 @@
 name: Upload Nightly
 description: A GitHub Action to upload artifacts nightly
 author: "Scientific-Python"
-version: "0.6.2"
+version: "0.6.3"
 
 inputs:
   artifacts_path:

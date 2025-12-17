@@ -4,8 +4,8 @@ This is a GitHub Action that uploads nightly builds to the [scientific-python ni
 as recommended in [SPEC4 — Using and Creating Nightly Wheels][].
 
 In a GitHub Actions workflow (`.github/workflows/*.yaml`), use the
-following snippet on a Linux or macOS runner to upload built wheels to the
-channel:
+following snippet on a Linux, macOS, or x86 Windows runner to upload built
+wheels to the channel:
 
 ```yml
 jobs:

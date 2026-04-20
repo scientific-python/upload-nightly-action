@@ -5,6 +5,9 @@ description = "Environment for the scientific-python/upload-nightly-action GitHu
 name = "upload-nightly-action"
 platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
 version = "0.6.3"
+requires-pixi = ">=0.67.0"
+# month window to find security issues
+exclude-newer = "30d"
 
 [tasks]
 

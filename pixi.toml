@@ -12,4 +12,4 @@ exclude-newer = "30d"
 [tasks]
 
 [dependencies]
-anaconda-client = "==1.13.1"
+anaconda-client = "==1.14.1"

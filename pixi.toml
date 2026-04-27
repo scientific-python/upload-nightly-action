@@ -9,7 +9,9 @@ requires-pixi = ">=0.67.0"
 # month window to find security issues
 exclude-newer = "30d"
 
-[tasks]
+[tasks.grype]
+description = "Scan environment for security vulnerabilities with grype"
+cmd = "pixi exec grype .pixi/envs/default"
 
 [dependencies]
 anaconda-client = "==1.14.1"

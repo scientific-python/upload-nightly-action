@@ -6,8 +6,8 @@ name = "upload-nightly-action"
 platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
 version = "0.6.4"
 requires-pixi = ">=0.67.0"
-# month window to find security issues
-exclude-newer = "30d"
+# time window to find security issues
+exclude-newer = "14d"
 
 [tasks]
 

@@ -38,7 +38,7 @@ threshold_date="$(date +%F -d '30 days ago')"
 
 curl --silent https://api.anaconda.org/package/"${ANACONDA_USER}/${PACKAGE_NAME}" | \
     jq -r '.releases[].version' > package-versions.txt
-head --lines "-${N_LATEST_UPLOADS}" package-versions.txt > remove-package-versions.txt
+tail --lines "+$(( N_LATEST_UPLOADS + 1 ))" package-versions.txt > remove-package-versions.txt
 
 for package_version in $(cat package-versions.txt); do
   # c.f. https://github.com/Anaconda-Platform/anaconda-client/issues/682#issuecomment-1677283067

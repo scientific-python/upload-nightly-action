@@ -4,15 +4,15 @@ This is a GitHub Action that uploads nightly builds to the [scientific-python ni
 as recommended in [SPEC4 — Using and Creating Nightly Wheels][].
 
 In a GitHub Actions workflow (`.github/workflows/*.yaml`), use the
-following snippet on a Linux or macOS runner to upload built wheels to the
-channel:
+following snippet on a Linux, macOS, or x86 Windows runner to upload built
+wheels to the channel:
 
 ```yml
 jobs:
   steps:
     ...
     - name: Upload wheel
-      uses: scientific-python/upload-nightly-action@b36e8c0c10dbcfd2e05bf95f17ef8c14fd708dbf # 0.6.2
+      uses: scientific-python/upload-nightly-action@e76cfec8a4611fd02808a801b0ff5a7d7c1b2d99 # 0.6.4
       with:
         artifacts_path: dist
         anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
@@ -25,15 +25,13 @@ being compromised.
 
 ## Removing old nightly builds
 
-This repository also ships with an action to ease removals of older nightly wheels from a channel.
+Note that the ``scientific-python-nightly-wheels`` channel, specifically, already removes
+old artifacts daily. The `remove-wheels` action is therefore intended for use with other channels.
 
+This repository also ships with an action to ease removals of older nightly wheels from a channel.
 Please note that the default configuration below will remove all but the `n_latest_uploads`
 latest uploads from the channel. This is useful to avoid hosting outdated development
 versions, as well as to clean up space.
-
-Note that the ``scientific-python-nightly-wheels`` channel, specifically, already removes
-old artifacts daily. The `remove-wheels` action is, therefore, intended for use with
-other channels.
 
 If you do not wish to have this automated cleanup, please [open an issue](https://github.com/scientific-python/upload-nightly-action/)
 to be added to the list of packages exempt from it. The current ones are named in
@@ -48,14 +46,20 @@ jobs:
   steps:
     ...
     - name: Remove old wheels
-      uses: scientific-python/upload-nightly-action/remove-wheels@cantknowhashyet # 0.6.0
+      uses: scientific-python/upload-nightly-action/remove-wheels@main # pin to a SHA in practice
       with:
-        n_latest_uploads: ${{ env.N_LATEST_UPLOADS }}
+        n_latest_uploads: 5
         anaconda_nightly_upload_organization: "your-organization"
         anaconda_nightly_token: ${{secrets.ANACONDA_TOKEN}}
+        package_name: "your-package"
 ```
 
-## Updating the actions
+Please note that the `anaconda_nightly_token` secret must have the necessary permissions to
+remove artifacts from the channel. A token scoped to a particular package will delete only
+the artifacts for that package. If you need to delete artifacts for multiple packages, run
+the action once per package (such as in a matrix).
+
+## Updating the action
 
 You can [use Dependabot to keep the GitHub Action up to date][],
 with a `.github/dependabot.yml` config file similar to:
@@ -78,7 +82,7 @@ then generate a token at `https://anaconda.org/<anaconda.org user name>/settings
 with permissions to _Allow write access to the API site_ and _Allow uploads to Standard Python repositories_,
 and add the token as a secret to your GitHub repository.
 
-## Using a channel other than ``scientific-python-nightly-wheels``
+## Using a different channel
 
 This Github Action can upload your nightly builds to a different channel. To do so,
 define the `anaconda_nightly_upload_organization` variable. Furthermore,
@@ -90,22 +94,13 @@ jobs:
   steps:
     ...
     - name: Upload wheel
-      uses: scientific-python/upload-nightly-action@b36e8c0c10dbcfd2e05bf95f17ef8c14fd708dbf # 0.6.2
+      uses: scientific-python/upload-nightly-action@e76cfec8a4611fd02808a801b0ff5a7d7c1b2d99 # 0.6.4
       with:
         artifacts_path: dist
         anaconda_nightly_upload_organization: my-alternative-organization
         anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
         anaconda_nightly_upload_labels: dev
 ```
-
-Similarly, to delete old wheels from a different channel, you can use the `anaconda_nightly_organization`
-parameter as described above.
-
-Please note that the `anaconda_nightly_token` secret must have the necessary permissions to
-remove artifacts from the channel. A token for a particular package will delete only the
-artifacts uploaded by that package. If you need to delete artifacts uploaded by other packages
-similar to the `scientific-python-nightly-wheels` channel here, you will need to use a token
-for the organization with higher permissions that lets you delete packages organization-wide.
 
 ## Artifact cleanup-policy at the ``scientific-python-nightly-wheels`` channel
 

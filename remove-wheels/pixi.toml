@@ -1,14 +1,15 @@
-[project]
+[workspace]
 authors = ["Scientific Python"]
 channels = ["conda-forge"]
 description = "Environment for the scientific-python/upload-nightly-action/remove-wheels GitHub action"
 name = "remove-wheels"
 platforms = ["linux-64", "osx-64", "osx-arm64"]
-version = "0.1.0" # TODO: think about versioning (as per action.yml)
+version = "0.1.0"
+requires-pixi = ">=0.67.0"
+exclude-newer = "30d"
 
 [tasks]
 
 [dependencies]
-python = "3.12.*"
-anaconda-client = "==1.12.3"
+anaconda-client = "==1.14.0"
 jq = "==1.7.1"

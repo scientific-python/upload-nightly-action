@@ -29,46 +29,27 @@ jobs:
       name: remove-old-wheels
 
     outputs:
-      pkg-names: ${{ steps.set-outputs.outputs.pkgnames }}
+      pkgnames: ${{ steps.set-outputs.outputs.pkgnames }}
 
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
       - name: Install micromamba and anaconda-client
-        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462  # v2.0.7
+        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476  # v3.0.0
         with:
           environment-name: remove-wheels
           create-args: >-
-            python=3.12
-            anaconda-client=1.12.3
-
-      - name: Show environment
-        run: env
-
-      - name: Show CLI API info
-        run: |
-          anaconda show --help
-          echo ""
-          anaconda remove --help
-
+            anaconda-client==1.14.0
+            jq
 
       - name: Generate list of package names
         id: set-outputs
-        shell: python
         run: |
-            import os
-            import json
-            from binstar_client.utils import get_server_api
-
-            api = get_server_api(token=os.environ.get("ANACONDA_TOKEN"))
-
-            pkgs = [p['name'] for p in api.user_packages('scientific-python-nightly-wheels')]
-            with open('packages-ignore-from-cleanup.txt', 'r') as f:
-                pkgs_ignore = [line.strip() for line in f.readlines()]
-
-            pkgs = [p for p in pkgs if p not in pkgs_ignore]
-            print(json.dumps(pkgs))
-        env:
-          ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+          pkgs_json=$(anaconda show "${ANACONDA_USER}" 2>&1 | grep "${ANACONDA_USER}/" | \
+              awk '{print $1}' | \
+              sed 's|.*/||g' | \
+              grep -vf packages-ignore-from-cleanup.txt | \
+              jq -Rn '[inputs]')
+          echo "pkgnames=${pkgs_json}" >> "$GITHUB_OUTPUT"
 
   remove:
     runs-on: ubuntu-latest
@@ -85,25 +66,7 @@ jobs:
         pkgname: ${{fromJSON(needs.get-pkgs.outputs.pkgnames)}}
 
     steps:
-      - name: Install micromamba and anaconda-client
-        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462  # v2.0.7
-        with:
-          environment-name: remove-wheels
-          create-args: >-
-            python=3.12
-            anaconda-client=1.12.3
-            curl
-            jq
-
-      - name: Show environment
-        run: env
-
-      - name: Show CLI API info
-        run: |
-          anaconda show --help
-          echo ""
-          anaconda remove --help
-
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
       - name: Remove old wheels
         uses: ./remove-wheels
         with:
@@ -111,4 +74,3 @@ jobs:
           anaconda_nightly_upload_organization: ${{ env.ANACONDA_USER }}
           anaconda_nightly_token: ${{ secrets.ANACONDA_TOKEN }}
           package_name: ${{ matrix.pkgname }}
-

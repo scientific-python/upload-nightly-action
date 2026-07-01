@@ -25,7 +25,7 @@ being compromised.
 
 ## Removing old nightly builds
 
-Note that the ``scientific-python-nightly-wheels`` channel, specifically, already removes
+Note that ``scientific-python-nightly-wheels``, specifically, already removes
 old artifacts daily. The `remove-wheels` action is therefore intended for use with other channels.
 
 This repository also ships with an action to ease removals of older nightly wheels from a channel.

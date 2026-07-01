@@ -32,9 +32,9 @@ jobs:
       pkgnames: ${{ steps.set-outputs.outputs.pkgnames }}
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Install micromamba and anaconda-client
-        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476  # v3.0.0
+        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           environment-name: remove-wheels
           create-args: >-
@@ -66,7 +66,7 @@ jobs:
         pkgname: ${{fromJSON(needs.get-pkgs.outputs.pkgnames)}}
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Remove old wheels
         uses: ./remove-wheels
         with:

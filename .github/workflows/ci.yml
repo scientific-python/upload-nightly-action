@@ -102,7 +102,7 @@ jobs:
           run-install: false
 
       - name: Remove test package upload
-        shell: pixi exec --spec anaconda-client -- bash -e {0}
+        shell: pixi exec --spec anaconda-client==1.14.1 -- bash -e {0}
         run: |
             anaconda --token ${{ secrets.ANACONDA_TOKEN }} remove \
               --force \

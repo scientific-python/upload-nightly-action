@@ -1,0 +1,43 @@
+name: Remove Old Wheels
+description: A GitHub Action to remove old wheels
+author: "Scientific-Python"
+
+inputs:
+  n_latest_uploads_to_keep:
+    description: 'The number of previous wheel uploads to keep'
+    required: false
+    default: '5'
+  anaconda_nightly_upload_organization:
+    description: 'Anaconda Cloud organisation name to remove the wheels from'
+    required: false
+    default: scientific-python-nightly-wheels
+  anaconda_nightly_token:
+    description: 'Anaconda Cloud API token to authenticate with'
+    required: true
+  package_name:
+    description: 'Name of the package to remove old uploads for'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f  # v0.10.0
+      with:
+        locked: true
+        cache: true
+        cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+        # Avoid post cleanup errors if action run multiple times
+        post-cleanup: false
+        # Action consumers should load the lock file from the action repo
+        manifest-path: ${{ github.action_path }}/../pixi.toml
+
+    - name: Remove old wheels
+      shell: bash
+      env:
+        INPUT_N_LATEST_UPLOADS: ${{ inputs.n_latest_uploads_to_keep }}
+        INPUT_ANACONDA_USER: ${{ inputs.anaconda_nightly_upload_organization }}
+        INPUT_ANACONDA_TOKEN: ${{ inputs.anaconda_nightly_token }}
+        INPUT_PACKAGE_NAME: ${{ inputs.package_name }}
+      run: |
+        pixi run --manifest-path ${{ github.action_path }}/../pixi.toml python ${{ github.action_path }}/remove_wheels.py

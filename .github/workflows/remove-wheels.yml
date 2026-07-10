@@ -3,25 +3,19 @@ name: Remove old wheels
 on:
   # Run daily at 1:23 UTC
   schedule:
-  - cron:  '23 1 * * *'
+    - cron: '23 1 * * *'
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Needed for micromamba pickup
-defaults:
-  run:
-    shell: bash -l {0}
-
 env:
   N_LATEST_UPLOADS: 5
   ANACONDA_USER: "scientific-python-nightly-wheels"
 
 jobs:
-  remove:
-
+  get-pkgs:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'scientific-python'
     # Set required workflow secrets in the environment for additional security
@@ -29,83 +23,47 @@ jobs:
     environment:
       name: remove-old-wheels
 
+    outputs:
+      pkgnames: ${{ steps.set-outputs.outputs.pkgnames }}
+
     steps:
-      - name: Install micromamba and anaconda-client
-        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476  # v3.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
-          environment-name: remove-wheels
-          create-args: >-
-            anaconda-client==1.14.0
-            curl
-            jq
+          locked: true
 
-      - name: Show environment
-        run: env
-
-      - name: Show CLI API info
+      - name: Generate list of package names
+        id: set-outputs
+        shell: pixi run --manifest-path pixi.toml bash -e {0}
         run: |
-          anaconda show --help
-          echo ""
-          anaconda remove --help
-
-      - name: Query package index for packages
-        run: |
-          curl https://raw.githubusercontent.com/scientific-python/upload-nightly-action/main/packages-ignore-from-cleanup.txt --output packages-ignore-from-cleanup.txt
-          anaconda show "${ANACONDA_USER}" &> >(grep "${ANACONDA_USER}/") | \
+          pkgs_json=$(anaconda show "${ANACONDA_USER}" 2>&1 | grep "${ANACONDA_USER}/" | \
               awk '{print $1}' | \
               sed 's|.*/||g' | \
-              grep -vf packages-ignore-from-cleanup.txt > package-names.txt
+              grep -vf packages-ignore-from-cleanup.txt | \
+              python -c 'import sys, json; print(json.dumps([line.strip() for line in sys.stdin if line.strip()]))')
+          echo "pkgnames=${pkgs_json}" >> "$GITHUB_OUTPUT"
 
-      - name: Remove old uploads to save space
-        run: |
-          # Remove all _but_ the last ${N_LATEST_UPLOADS} package versions and
-          # remove all package versions older than 30 days.
+  remove:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'scientific-python'
+    # Set required workflow secrets in the environment for additional security
+    # https://github.com/scientific-python/upload-nightly-action/settings/environments
+    environment:
+      name: remove-old-wheels
 
-          if [ -s package-names.txt ]; then
-              threshold_date="$(date +%F -d '30 days ago')"
+    needs: [get-pkgs]
 
-              # Remember can't quote subshell as need to split on (space seperated) token
-              for package_name in $(cat package-names.txt); do
+    strategy:
+      matrix:
+        pkgname: ${{fromJSON(needs.get-pkgs.outputs.pkgnames)}}
 
-                  echo -e "\n# package: ${package_name}"
-
-                  curl --silent https://api.anaconda.org/package/"${ANACONDA_USER}/${package_name}" | \
-                      jq -r '.releases[].version' > package-versions.txt
-                  head --lines "-${N_LATEST_UPLOADS}" package-versions.txt > remove-package-versions.txt
-
-                  for package_version in $(cat package-versions.txt); do
-                    # c.f. https://github.com/Anaconda-Platform/anaconda-client/issues/682#issuecomment-1677283067
-                    upload_date=$(curl --silent https://api.anaconda.org/release/"${ANACONDA_USER}/${package_name}/${package_version}" | \
-                        jq -r '.distributions[].upload_time' | \
-                        sort | \
-                        tail --lines 1 | \
-                        awk '{print $1}')
-
-                    # check upload_date is YYYY-MM-DD formatted
-                    # c.f. https://github.com/scientific-python/upload-nightly-action/issues/73
-                    if [[ "${upload_date}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-                        if [[ "${upload_date}" < "${threshold_date}" ]]; then
-                            echo "# ${ANACONDA_USER}/${package_name}/${package_version} last uploaded on ${upload_date}"
-                            echo "${package_version}" >> remove-package-versions.txt
-                        fi
-                    else
-                        echo "# ERROR: ${ANACONDA_USER}/${package_name}/${package_version} upload date ${upload_date} is not YYYY-MM-DD."
-                    fi
-
-                  done
-
-                  if [ -s remove-package-versions.txt ]; then
-                      # Guard against duplicate entries from packages over
-                      # count and time thresholds
-                      sort --output remove-package-versions.txt --unique remove-package-versions.txt
-
-                      for package_version in $(cat remove-package-versions.txt); do
-                          echo "# Removing ${ANACONDA_USER}/${package_name}/${package_version}"
-                          anaconda --token ${{ secrets.ANACONDA_TOKEN }} remove \
-                            --force \
-                            "${ANACONDA_USER}/${package_name}/${package_version}"
-                      done
-                  fi
-
-              done
-          fi
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Remove old wheels
+        uses: ./remove-wheels
+        with:
+          n_latest_uploads_to_keep: ${{ env.N_LATEST_UPLOADS }}
+          anaconda_nightly_upload_organization: ${{ env.ANACONDA_USER }}
+          anaconda_nightly_token: ${{ secrets.ANACONDA_TOKEN }}
+          package_name: ${{ matrix.pkgname }}

@@ -18,9 +18,46 @@ jobs:
         anaconda_nightly_upload_token: ${{secrets.UPLOAD_TOKEN}}
 ```
 
-Note that we recommend pinning the action against a specific SHA
+> [!IMPORTANT]
+> Note that we recommend pinning the action against a specific SHA
 (rather than a tag), to guard against the unlikely event of upstream
 being compromised.
+
+## Removing old nightly builds
+
+Note that ``scientific-python-nightly-wheels``, specifically, already removes
+old artifacts daily. The `remove-wheels` action is therefore intended for use with other channels.
+
+This repository also ships with an action to ease removals of older nightly wheels from a channel.
+Please note that the default configuration below will remove all but the `n_latest_uploads_to_keep`
+latest uploads from the channel. This is useful to avoid hosting outdated development
+versions, as well as to clean up space.
+
+If you do not wish to have this automated cleanup, please [open an issue](https://github.com/scientific-python/upload-nightly-action/)
+to be added to the list of packages exempt from it. The current ones are named in
+[`packages-ignore-from-cleanup.txt`](packages-ignore-from-cleanup.txt).
+
+Please refer to the [artifact cleanup policy][] for more information.
+
+To use this functionality, add the following snippet to your workflow:
+
+```yml
+jobs:
+  steps:
+    ...
+    - name: Remove old wheels
+      uses: scientific-python/upload-nightly-action/remove-wheels@main # pin to a SHA in practice
+      with:
+        n_latest_uploads_to_keep: 5
+        anaconda_nightly_upload_organization: "your-organization"
+        anaconda_nightly_token: ${{secrets.ANACONDA_TOKEN}}
+        package_name: "your-package"
+```
+
+Please note that the `anaconda_nightly_token` secret must have the necessary permissions to
+remove artifacts from the channel. A token scoped to a particular package will delete only
+the artifacts for that package. If you need to delete artifacts for multiple packages, run
+the action once per package (such as in a matrix).
 
 ## Updating the action
 
@@ -112,3 +149,4 @@ dependencies:
 [PyPI]: https://pypi.org/
 [scientific-python nightly channel]: https://anaconda.org/scientific-python-nightly-wheels
 [SPEC4 — Using and Creating Nightly Wheels]: https://scientific-python.org/specs/spec-0004/
+[artifact cleanup policy]: #artifact-cleanup-policy-at-the-scientific-python-nightly-wheels-channel

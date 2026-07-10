@@ -22,7 +22,7 @@ runs:
   using: "composite"
   steps:
     - name: Set up pixi
-      uses: prefix-dev/setup-pixi@5185adfbffb4bd703da3010310260805d89ebb11  # v0.9.6
+      uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f  # v0.10.0
       with:
         locked: true
         cache: true
@@ -30,7 +30,8 @@ runs:
         # Avoid post cleanup errors if action run multiple times
         post-cleanup: false
         # Action consumers should load the lock file from the action repo
-        manifest-path: ${{ github.action_path }}/pixi.toml
+        manifest-path: ${{ github.action_path }}/../pixi.toml
+        environments: remove
 
     - name: Remove old wheels
       shell: bash
@@ -40,4 +41,4 @@ runs:
         INPUT_ANACONDA_TOKEN: ${{ inputs.anaconda_nightly_token }}
         INPUT_PACKAGE_NAME: ${{ inputs.package_name }}
       run: |
-        pixi run --manifest-path ${{ github.action_path }}/pixi.toml ${{ github.action_path }}/remove_wheels.sh
+        pixi run --manifest-path ${{ github.action_path }}/../pixi.toml --environment remove ${{ github.action_path }}/remove_wheels.sh

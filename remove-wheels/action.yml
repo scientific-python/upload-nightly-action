@@ -3,7 +3,7 @@ description: A GitHub Action to remove old wheels
 author: "Scientific-Python"
 
 inputs:
-  n_latest_uploads:
+  n_latest_uploads_to_keep:
     description: 'The number of previous wheel uploads to keep'
     required: false
     default: '5'
@@ -35,7 +35,7 @@ runs:
     - name: Remove old wheels
       shell: bash
       env:
-        INPUT_N_LATEST_UPLOADS: ${{ inputs.n_latest_uploads }}
+        INPUT_N_LATEST_UPLOADS: ${{ inputs.n_latest_uploads_to_keep }}
         INPUT_ANACONDA_USER: ${{ inputs.anaconda_nightly_upload_organization }}
         INPUT_ANACONDA_TOKEN: ${{ inputs.anaconda_nightly_token }}
         INPUT_PACKAGE_NAME: ${{ inputs.package_name }}

@@ -70,7 +70,7 @@ jobs:
       - name: Remove old wheels
         uses: ./remove-wheels
         with:
-          n_latest_uploads: ${{ env.N_LATEST_UPLOADS }}
+          n_latest_uploads_to_keep: ${{ env.N_LATEST_UPLOADS }}
           anaconda_nightly_upload_organization: ${{ env.ANACONDA_USER }}
           anaconda_nightly_token: ${{ secrets.ANACONDA_TOKEN }}
           package_name: ${{ matrix.pkgname }}

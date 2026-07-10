@@ -29,7 +29,7 @@ Note that ``scientific-python-nightly-wheels``, specifically, already removes
 old artifacts daily. The `remove-wheels` action is therefore intended for use with other channels.
 
 This repository also ships with an action to ease removals of older nightly wheels from a channel.
-Please note that the default configuration below will remove all but the `n_latest_uploads`
+Please note that the default configuration below will remove all but the `n_latest_uploads_to_keep`
 latest uploads from the channel. This is useful to avoid hosting outdated development
 versions, as well as to clean up space.
 
@@ -48,7 +48,7 @@ jobs:
     - name: Remove old wheels
       uses: scientific-python/upload-nightly-action/remove-wheels@main # pin to a SHA in practice
       with:
-        n_latest_uploads: 5
+        n_latest_uploads_to_keep: 5
         anaconda_nightly_upload_organization: "your-organization"
         anaconda_nightly_token: ${{secrets.ANACONDA_TOKEN}}
         package_name: "your-package"

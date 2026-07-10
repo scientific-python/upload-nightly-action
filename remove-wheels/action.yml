@@ -31,7 +31,6 @@ runs:
         post-cleanup: false
         # Action consumers should load the lock file from the action repo
         manifest-path: ${{ github.action_path }}/../pixi.toml
-        environments: remove
 
     - name: Remove old wheels
       shell: bash
@@ -41,4 +40,4 @@ runs:
         INPUT_ANACONDA_TOKEN: ${{ inputs.anaconda_nightly_token }}
         INPUT_PACKAGE_NAME: ${{ inputs.package_name }}
       run: |
-        pixi run --manifest-path ${{ github.action_path }}/../pixi.toml --environment remove ${{ github.action_path }}/remove_wheels.sh
+        pixi run --manifest-path ${{ github.action_path }}/../pixi.toml python ${{ github.action_path }}/remove_wheels.py

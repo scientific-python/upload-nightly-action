@@ -13,14 +13,3 @@ exclude-newer = "30d"
 
 [dependencies]
 anaconda-client = "==1.14.1"
-
-# jq isn't packaged for Windows yet, see https://github.com/conda-forge/jq-feedstock/issues/3 and https://github.com/conda-forge/jq-feedstock/pull/24. So this environment
-# is only for Unix platforms.
-[feature.remove]
-platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
-
-[feature.remove.dependencies]
-jq = "==1.7.1"
-
-[environments]
-remove = ["remove"]

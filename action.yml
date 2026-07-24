@@ -18,6 +18,26 @@ inputs:
     description: 'List of labels assigned to the uploaded artifacts'
     required: false
     default: main
+  report_failures:
+    description: >-
+      When "true", open an issue on the repository running this action if the
+      upload fails, and close it automatically on the next successful upload.
+      The calling workflow must grant `permissions: issues: write`.
+    required: false
+    default: 'false'
+  github_token:
+    description: >-
+      Token used to open/close the failure-reporting issue. Defaults to the
+      automatically provided `github.token`; override only if you need to open
+      the issue on a different repository with a token that has access to it.
+    required: false
+    default: ${{ github.token }}
+  issue_repository:
+    description: >-
+      Repository (in "owner/name" form) where the failure issue should be opened.
+      Defaults to the repository running the action.
+    required: false
+    default: ''
 
 runs:
   using: "composite"
@@ -34,7 +54,11 @@ runs:
         manifest-path: ${{ github.action_path }}/pixi.toml
 
     - name: Upload wheels
+      id: upload
       shell: bash
+      # When failure reporting is enabled we must not abort here, so that the
+      # reporting step below can run. The final step re-raises the failure.
+      continue-on-error: ${{ inputs.report_failures == 'true' }}
       env:
         INPUT_ARTIFACTS_PATH: ${{ inputs.artifacts_path }}
         INPUT_ANACONDA_NIGHTLY_UPLOAD_ORGANIZATION: ${{ inputs.anaconda_nightly_upload_organization }}
@@ -42,3 +66,21 @@ runs:
         INPUT_ANACONDA_NIGHTLY_UPLOAD_LABELS: ${{ inputs.anaconda_nightly_upload_labels }}
       run: |
         pixi run --manifest-path ${{ github.action_path }}/pixi.toml ${{ github.action_path }}/upload_wheels.sh
+
+    - name: Report upload status
+      if: ${{ inputs.report_failures == 'true' }}
+      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
+      env:
+        UPLOAD_OUTCOME: ${{ steps.upload.outcome }}
+        ISSUE_REPOSITORY: ${{ inputs.issue_repository }}
+      with:
+        github-token: ${{ inputs.github_token }}
+        script: |
+          await require(`${process.env.GITHUB_ACTION_PATH}/scripts/report_failure.js`)({ github, context, core });
+
+    - name: Propagate upload failure
+      if: ${{ steps.upload.outcome == 'failure' }}
+      shell: bash
+      run: |
+        echo "::error::Nightly wheel upload failed." >&2
+        exit 1

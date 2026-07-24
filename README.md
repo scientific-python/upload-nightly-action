@@ -37,6 +37,43 @@ updates:
       interval: "weekly"
 ```
 
+## Getting notified when an upload fails
+
+If a nightly upload silently starts failing, downstream projects can go weeks
+without fresh wheels. To catch this, set `report_failures: true`. When the
+upload fails the action opens (or reuses) an issue on the repository running the
+action, and closes it automatically on the next successful upload.
+
+This uses the automatically-provided `github.token`, so no extra secret is
+needed — but the calling workflow must grant `issues: write`:
+
+```yml
+jobs:
+  upload:
+    permissions:
+      # `report_failures` needs `issues: write`; that is the only scope the
+      # action itself requires. Any scope you do not list defaults to `none`.
+      # `contents: read` is only needed if the job also checks out the repo.
+      issues: write
+      contents: read
+    steps:
+      ...
+      - name: Upload wheel
+        uses: scientific-python/upload-nightly-action@main
+        with:
+          artifacts_path: dist
+          anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
+          report_failures: true
+```
+
+Additional inputs:
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `report_failures` | `false` | Open/close a tracking issue on the calling repo when the upload fails/recovers. |
+| `github_token` | `${{ github.token }}` | Token used to manage the tracking issue. Override to open the issue on another repo. |
+| `issue_repository` | current repo | `owner/name` where the tracking issue should be opened. |
+
 ## Access to the ``scientific-python-nightly-wheels`` channel
 
 To request access to the wheel channel, please open an issue on [the upload action's
@@ -76,6 +113,24 @@ default retention policy of:
 Any versions beyond these are automatically removed as part of a daily cron job run from this repository.
 Projects may have reasons to request to be added to the list exempt from this automated cleanup, however
 in that case the responsibility of cleaning-up old, unused versions fall back on the individual project.
+
+## Monitoring channel freshness (maintainers)
+
+In addition to pruning old *versions* (see above), a scheduled workflow
+([`.github/workflows/monitor-nightly.yml`](.github/workflows/monitor-nightly.yml))
+watches for packages that have stopped receiving uploads entirely and files
+issues on this repository:
+
+- **> 30 days** without an upload → opens a `stale-nightly` issue for the package
+  (automatically closed once a fresh upload lands).
+- **> 60 days** without an upload → additionally opens a `nightly-purge-candidate`
+  issue asking maintainers to decide whether to purge the package from the
+  channel (also auto-closed on recovery).
+
+It never deletes anything, uses `actions/github-script` with the built-in
+`github.token`, and skips packages listed in
+[`packages-ignore-from-cleanup.txt`](packages-ignore-from-cleanup.txt) so that
+intentionally-exempt packages are not flagged.
 
 # Using nightly builds in CI
 

@@ -1,0 +1,18 @@
+{
+  "name": "upload-nightly-action-scripts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Lint/format config for the github-script helpers used by this action.",
+  "type": "commonjs",
+  "scripts": {
+    "lint": "eslint scripts .github/scripts && prettier --check scripts .github/scripts",
+    "format": "prettier --write scripts .github/scripts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.12.0",
+    "prettier": "^3.3.3"
+  }
+}

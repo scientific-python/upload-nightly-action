@@ -114,6 +114,24 @@ Any versions beyond these are automatically removed as part of a daily cron job 
 Projects may have reasons to request to be added to the list exempt from this automated cleanup, however
 in that case the responsibility of cleaning-up old, unused versions fall back on the individual project.
 
+## Monitoring channel freshness (maintainers)
+
+In addition to pruning old *versions* (see above), a scheduled workflow
+([`.github/workflows/monitor-nightly.yml`](.github/workflows/monitor-nightly.yml))
+watches for packages that have stopped receiving uploads entirely and files
+issues on this repository:
+
+- **> 30 days** without an upload → opens a `stale-nightly` issue for the package
+  (automatically closed once a fresh upload lands).
+- **> 60 days** without an upload → additionally opens a `nightly-purge-candidate`
+  issue asking maintainers to decide whether to purge the package from the
+  channel (also auto-closed on recovery).
+
+It never deletes anything, uses `actions/github-script` with the built-in
+`github.token`, and skips packages listed in
+[`packages-ignore-from-cleanup.txt`](packages-ignore-from-cleanup.txt) so that
+intentionally-exempt packages are not flagged.
+
 # Using nightly builds in CI
 
 To test against nightly builds, you can use the following command to install from

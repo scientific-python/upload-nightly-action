@@ -37,6 +37,43 @@ updates:
       interval: "weekly"
 ```
 
+## Getting notified when an upload fails
+
+If a nightly upload silently starts failing, downstream projects can go weeks
+without fresh wheels. To catch this, set `report_failures: true`. When the
+upload fails the action opens (or reuses) an issue on the repository running the
+action, and closes it automatically on the next successful upload.
+
+This uses the automatically-provided `github.token`, so no extra secret is
+needed — but the calling workflow must grant `issues: write`:
+
+```yml
+jobs:
+  upload:
+    permissions:
+      # `report_failures` needs `issues: write`; that is the only scope the
+      # action itself requires. Any scope you do not list defaults to `none`.
+      # `contents: read` is only needed if the job also checks out the repo.
+      issues: write
+      contents: read
+    steps:
+      ...
+      - name: Upload wheel
+        uses: scientific-python/upload-nightly-action@main
+        with:
+          artifacts_path: dist
+          anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
+          report_failures: true
+```
+
+Additional inputs:
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `report_failures` | `false` | Open/close a tracking issue on the calling repo when the upload fails/recovers. |
+| `github_token` | `${{ github.token }}` | Token used to manage the tracking issue. Override to open the issue on another repo. |
+| `issue_repository` | current repo | `owner/name` where the tracking issue should be opened. |
+
 ## Access to the ``scientific-python-nightly-wheels`` channel
 
 To request access to the wheel channel, please open an issue on [the upload action's

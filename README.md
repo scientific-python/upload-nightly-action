@@ -114,6 +114,46 @@ Any versions beyond these are automatically removed as part of a daily cron job 
 Projects may have reasons to request to be added to the list exempt from this automated cleanup, however
 in that case the responsibility of cleaning-up old, unused versions fall back on the individual project.
 
+## Monitoring channel freshness (maintainers)
+
+In addition to pruning old *versions* (see above), a scheduled workflow
+([`.github/workflows/monitor-nightly.yml`](.github/workflows/monitor-nightly.yml))
+watches for packages that have stopped receiving uploads entirely and files
+issues on this repository:
+
+- **> 30 days** without an upload → opens a `stale-nightly` issue for the package
+  (automatically closed once a fresh upload lands).
+- **> 60 days** without an upload → additionally opens a `nightly-purge-candidate`
+  issue asking maintainers to decide whether to purge the package from the
+  channel (also auto-closed on recovery).
+
+It never deletes anything, runs a small Python script
+([`.github/scripts/monitor_nightly.py`](.github/scripts/monitor_nightly.py), using
+PyGithub) with the built-in `github.token`, and skips packages listed in
+[`packages-ignore-from-cleanup.txt`](packages-ignore-from-cleanup.txt) so that
+intentionally-exempt packages are not flagged.
+
+### Notifying the projects directly (optional)
+
+The monitor can also open a tracking issue on **each wheel's own repository** so
+the people who can fix the build hear about it early:
+
+- **> 15 days** without an upload → opens a `nightly-upload-stalled` issue on the
+  producing repo, escalated with a comment at the 30- and 60-day marks and
+  auto-closed on recovery.
+
+Because the default `github.token` cannot write issues on other repositories,
+this requires a Personal Access Token with `issues: write` on those repos, stored
+as the `NIGHTLY_UPLOAD_ISSUE_PAT` secret, plus a hand-maintained wheel → repo
+mapping in
+[`packages-source-repos.yaml`](packages-source-repos.yaml). It is fully opt-in:
+with no PAT (or an empty mapping) this behaviour is skipped entirely.
+
+If the PAT is set but invalid, expired, or unauthorized, the monitor opens a
+`nightly-pat-invalid` issue on *this* repository (using the built-in token) so
+maintainers know to rotate the secret, and closes it automatically once the token
+works again.
+
 # Using nightly builds in CI
 
 To test against nightly builds, you can use the following command to install from

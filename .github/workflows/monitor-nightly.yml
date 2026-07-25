@@ -1,0 +1,70 @@
+name: Monitor nightly channel
+
+# Watches the scientific-python-nightly-wheels channel and files issues on this
+# repository when a package stops receiving uploads:
+#   * > 30 days without an upload  -> open a "stale" issue (auto-closed on recovery)
+#   * > 60 days without an upload  -> additionally open a "purge candidate" issue
+#     asking maintainers to remove the package from the nightly channel.
+#
+# This complements remove-wheels.yml (which prunes old *versions*); here we only
+# open/close tracking issues and never delete anything. Packages listed in
+# packages-ignore-from-cleanup.txt are intentionally exempt and are skipped.
+#
+# The logic lives in .github/scripts/monitor_nightly.py (dependencies pinned in
+# .github/scripts/requirements.txt).
+
+on:
+  schedule:
+    # Every day at 07:00 UTC, after the nightly uploads have had time to land.
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+# Least-privilege GITHUB_TOKEN. This job only checks out the repo (to read the
+# monitor script and the ignore list) and opens/closes/comments on issues;
+# package data comes from the public anaconda.org API. Any scope omitted from a
+# `permissions:` block already defaults to `none`; the `none` entries below are
+# spelled out for readability so the intent is explicit.
+permissions:
+  issues: write        # create / comment on / close the tracking issues
+  contents: read       # checkout: read the script + packages-ignore-from-cleanup.txt
+  actions: none
+  attestations: none
+  checks: none
+  deployments: none
+  discussions: none
+  id-token: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+concurrency:
+  group: monitor-nightly
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'scientific-python'
+    steps:
+      - name: Check out the action
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: python -m pip install -r "${GITHUB_WORKSPACE}/.github/scripts/requirements.txt"
+
+      - name: Check nightly upload freshness
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Optional PAT with `issues: write` on the producing repos. When set
+          # (together with entries in packages-source-repos.yaml), the monitor
+          # also opens a tracking issue on each stalled wheel's own repository.
+          PRODUCER_GITHUB_TOKEN: ${{ secrets.NIGHTLY_UPLOAD_ISSUE_PAT }}
+        run: python3 "${GITHUB_WORKSPACE}/.github/scripts/monitor_nightly.py"

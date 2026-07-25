@@ -1,0 +1,4 @@
+# Dependencies for monitor_nightly.py (used by monitor-nightly.yml).
+PyGithub==2.9.1
+PyYAML==6.0.2
+requests==2.32.5

@@ -1,0 +1,31 @@
+# Hand-maintained mapping: nightly wheel name -> source GitHub repository.
+#
+# Used by .github/scripts/monitor_nightly.py to open a tracking issue on a
+# project's OWN repository when its nightly wheels stop being uploaded (see the
+# "Monitoring channel freshness" section of the README).
+#
+# This only takes effect when the monitor workflow is given a Personal Access
+# Token via the secrets.NIGHTLY_UPLOAD_ISSUE_PAT secret (exposed to the script
+# as PRODUCER_GITHUB_TOKEN) that has `issues: write` on the listed repositories.
+# Without that token this file is ignored.
+#
+# Each entry maps the wheel name (as published on
+# https://anaconda.org/scientific-python-nightly-wheels ) to its source repo.
+# An entry may be a bare "owner/repo" string, or a mapping with a `repo:` key so
+# that per-repo configuration (e.g. custom labels or assignees) can be added
+# later without changing the file format.
+
+packages:
+  # Dummy entry, kept so the file is always valid YAML and the schema is
+  # exercised in CI. It is inert in practice: no wheel named
+  # "example-nightly-package" exists on the channel, so it never triggers.
+  # Replace the entries below with real projects.
+  example-nightly-package:
+    repo: scientific-python/upload-nightly-action
+
+  # Real examples (uncomment and verify before enabling):
+  # contourpy: contourpy/contourpy
+  # scikit-image:
+  #   repo: scikit-image/scikit-image
+  # sunpy:
+  #   repo: sunpy/sunpy

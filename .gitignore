@@ -1,3 +1,7 @@
 # pixi environments
 .pixi
 *.egg-info
+
+# python
+__pycache__/
+.ruff_cache/

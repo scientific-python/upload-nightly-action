@@ -1,0 +1,37 @@
+name: Lint scripts
+
+# Lints and format-checks the Python helpers under scripts/ and .github/scripts/
+# that are run by the action and the monitor workflow.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39  # v8.2.0
+
+      # ruff is pinned inline so a new release cannot change the lint outcome
+      # unexpectedly (the rule selection is also pinned in ruff.toml). Bump
+      # deliberately.
+      - name: Lint (ruff check)
+        run: uvx ruff@0.16.0 check scripts .github/scripts
+
+      - name: Format check (ruff format)
+        run: uvx ruff@0.16.0 format --check scripts .github/scripts

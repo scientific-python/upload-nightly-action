@@ -77,6 +77,16 @@ Any versions beyond these are automatically removed as part of a daily cron job 
 Projects may have reasons to request to be added to the list exempt from this automated cleanup, however
 in that case the responsibility of cleaning-up old, unused versions fall back on the individual project.
 
+If you are a low traffic project this policy might catch you out, as the last wheel will be removed from
+this channel 30 days after it was uploaded. A low activity project might not receive updates often enough
+to produce a new wheel every 30 days. We recommend that you upload a nightly wheel on a regular cadence
+even if there are no changes.
+
+In addition cron jobs in GitHub repositories will be disabled after a certain amount of inactivity. We
+are not aware of a solution other than regular commit activity to prevent the deactivation of scheduled
+cron jobs.
+
+
 # Using nightly builds in CI
 
 To test against nightly builds, you can use the following command to install from

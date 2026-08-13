@@ -1,0 +1,42 @@
+name: Report a failing workflow
+
+# Called by the scheduled workflows in this repository when they fail. A cron job
+# that quietly stops working can go unnoticed for months, which is the very thing
+# this repository nags other projects about.
+
+on:
+  workflow_call:
+    inputs:
+      title:
+        description: 'Title of the issue to open, and to reuse while it stays open'
+        required: true
+        type: string
+
+jobs:
+  report:
+
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Open or update an issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ inputs.title }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          body="\`${GITHUB_WORKFLOW}\` failed, most recently in [this run](${RUN_URL}).
+
+          Until it is fixed, whatever that workflow keeps an eye on is unattended."
+
+          number=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --json number,title \
+              --jq 'map(select(.title == env.TITLE)) | .[0].number // ""')
+
+          # Rewrite rather than comment, so a workflow that fails every day does not
+          # collect a comment a day
+          if [ -n "${number}" ]; then
+              gh issue edit "${number}" --repo "${GITHUB_REPOSITORY}" --body "${body}"
+          else
+              gh issue create --repo "${GITHUB_REPOSITORY}" --title "${TITLE}" --body "${body}"
+          fi

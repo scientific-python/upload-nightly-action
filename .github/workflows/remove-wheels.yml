@@ -109,3 +109,12 @@ jobs:
 
               done
           fi
+
+  report-failure:
+    needs: [remove]
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      issues: write
+    uses: ./.github/workflows/report-failure.yml
+    with:
+      title: 'The old wheel cleanup is failing'

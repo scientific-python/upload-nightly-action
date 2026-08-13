@@ -36,3 +36,12 @@ jobs:
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         commit_message: Keep repo GitHub Actions alive
+
+  report-failure:
+    needs: [deploy]
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      issues: write
+    uses: ./.github/workflows/report-failure.yml
+    with:
+      title: 'The workflow keep-alive is failing'

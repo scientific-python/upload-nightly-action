@@ -39,23 +39,11 @@ jobs:
         run: |
           uv run --frozen tools/check_stale_wheels.py ${{ inputs.dry_run && '--dry-run' || '' }}
 
-      # A scheduled job that quietly stops working is exactly the failure mode this
-      # workflow exists to prevent, so make it noisy about itself too.
-      - name: Report that this workflow failed
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TITLE: The stale nightly wheel check is failing
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          body="[This run](${RUN_URL}) of \`${GITHUB_WORKFLOW}\` failed, so projects whose nightly
-          wheels are about to be removed from the channel are no longer being notified."
-
-          number=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --json number,title \
-              --jq 'map(select(.title == env.TITLE)) | .[0].number // ""')
-
-          if [ -n "${number}" ]; then
-              gh issue comment "${number}" --repo "${GITHUB_REPOSITORY}" --body "${body}"
-          else
-              gh issue create --repo "${GITHUB_REPOSITORY}" --title "${TITLE}" --body "${body}"
-          fi
+  report-failure:
+    needs: [report]
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      issues: write
+    uses: ./.github/workflows/report-failure.yml
+    with:
+      title: 'The stale nightly wheel check is failing'

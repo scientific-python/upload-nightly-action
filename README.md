@@ -86,6 +86,18 @@ In addition cron jobs in GitHub repositories will be disabled after a certain am
 We are not aware of a solution other than regular commit activity to prevent the deactivation of
 scheduled cron jobs.
 
+### Stale wheel reminders
+
+So that the removal above does not come as a surprise, a daily job in this repository checks how
+long ago each package was last uploaded. If it has been more than **15 days**, the job opens an
+issue on that project's own issue tracker naming the date its wheels will be removed, comments once
+more at 25 days, and closes the issue automatically once a new wheel is uploaded. Issues are opened
+by [@scientific-python-bot][bot]; the repository to report to is taken from the project's PyPI
+metadata (`Project-URL`), so keeping those URLs pointed at your GitHub repository is enough to be
+reachable.
+
+[bot]: https://github.com/scientific-python-bot
+
 
 # Using nightly builds in CI
 

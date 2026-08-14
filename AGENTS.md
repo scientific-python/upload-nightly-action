@@ -20,11 +20,13 @@ It is called as a job rather than used as a composite action because `ci.yml` ch
 
 Pin third-party actions to a full commit SHA with a `# vX.Y.Z` comment; Dependabot updates them monthly as a single group.
 
-Python scripts declare their dependencies in a PEP 723 header with a committed `.lock` beside them, and run under `uv run --frozen`.
-Refresh one with `uv lock --script <path> --upgrade`, because Dependabot does not track these lock files.
-This matches `scientific-python/issue-from-pytest-log-action`, which is worth reading for the house style.
+Run the Python tools with `uv run --with-requirements requirements.txt <script>`, which is how the workflows invoke them; the scripts carry no PEP 723 header, so that their dependencies are declared in exactly one place.
+That file pins exact versions rather than a `uv.lock`, because Dependabot has no `uv` ecosystem and an unmaintainable lock would only rot, while it does understand `requirements.txt` and proposes updates monthly.
+`scientific-python/issue-from-pytest-log-action` is worth reading for the rest of the house style, though it locks its scripts individually where this repository does not.
 
-Pin versions exactly, as `pixi.toml` does, and keep the `exclude-newer` windows in place — they exist to surface security issues rather than to chase releases.
+Pin versions exactly, as `pixi.toml` and `requirements.txt` both do.
+Do not add a `[tool.uv] exclude-newer` window to a script whose dependencies Dependabot pins: uv then refuses to resolve any pin newer than the cutoff, leaving every Dependabot pull request unresolvable until the release ages past it.
+The window in `pixi.toml` is fine, because those versions are bumped by hand.
 
 Format Python with `ruff format --line-length 100`; there is no ruff configuration in the repository yet, so pass the length explicitly.
 

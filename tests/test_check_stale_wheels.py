@@ -1,16 +1,4 @@
 #!/usr/bin/env python
-# /// script
-# dependencies = [
-#     "PyGithub",
-#     "pytest",
-#     "requests",
-# ]
-# requires-python = ">=3.11"
-#
-# [tool.uv]
-# # month window to find security issues
-# exclude-newer = "30 days"
-# ///
 """Tests for ``tools/check_stale_wheels.py``."""
 
 import sys

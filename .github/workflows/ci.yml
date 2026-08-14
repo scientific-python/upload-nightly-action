@@ -26,10 +26,10 @@ jobs:
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Run the tests
-        run: uv run --frozen tests/test_check_stale_wheels.py
+        run: uv run --with-requirements requirements.txt tests/test_check_stale_wheels.py
 
   test:
     name: "test upload via action"

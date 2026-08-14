@@ -1,15 +1,4 @@
 #!/usr/bin/env python
-# /// script
-# dependencies = [
-#     "PyGithub",
-#     "requests",
-# ]
-# requires-python = ">=3.11"
-#
-# [tool.uv]
-# # month window to find security issues
-# exclude-newer = "30 days"
-# ///
 """Report projects whose nightly wheels are about to be removed from the channel.
 
 Wheels older than the retention period are deleted by ``remove-wheels.yml``, which

@@ -30,14 +30,14 @@ jobs:
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Check for stale wheels
         env:
           ISSUE_OPENER_TOKEN: ${{ secrets.ISSUE_OPENER_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          uv run --frozen tools/check_stale_wheels.py ${{ inputs.dry_run && '--dry-run' || '' }}
+          uv run --with-requirements requirements.txt tools/check_stale_wheels.py ${{ inputs.dry_run && '--dry-run' || '' }}
 
   report-failure:
     needs: [report]

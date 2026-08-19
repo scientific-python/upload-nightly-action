@@ -30,7 +30,11 @@ jobs:
 
           Until it is fixed, whatever that workflow keeps an eye on is unattended."
 
-          number=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --json number,title \
+          # Only ever match our own issues, so the default page of 30 cannot hide the
+          # one we are looking for. Without --search this is the REST creator filter,
+          # which wants the literal login: "app/github-actions" matches nothing here.
+          number=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open \
+              --author "github-actions[bot]" --json number,title \
               --jq 'map(select(.title == env.TITLE)) | .[0].number // ""')
 
           # Rewrite rather than comment, so a workflow that fails every day does not

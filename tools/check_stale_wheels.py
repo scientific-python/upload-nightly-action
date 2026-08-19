@@ -35,7 +35,8 @@ ACTION_URL = "https://github.com/scientific-python/upload-nightly-action"
 POLICY_URL = f"{ACTION_URL}#artifact-cleanup-policy-at-the-scientific-python-nightly-wheels-channel"
 
 # Hidden markers let us find our own issues and comments again without relying on
-# the (fuzzy, eventually consistent) search API.
+# the (fuzzy, eventually consistent) search API. Changing one silently orphans every
+# issue already carrying it, so treat them as permanent.
 MARKER = "<!-- scientific-python-nightly-wheels: stale-wheels -->"
 FINAL_WARNING_MARKER = "<!-- scientific-python-nightly-wheels: stale-wheels-final -->"
 REPORT_MARKER = "<!-- scientific-python-nightly-wheels: stale-wheels-report -->"
@@ -99,12 +100,9 @@ class Package:
         return (now - self.last_upload).days
 
 
-def list_packages(ignored):
-    return [
-        package["name"]
-        for package in fetch(f"{ANACONDA_API}/packages/{ANACONDA_USER}")
-        if package["name"] not in ignored
-    ]
+def list_packages():
+    """Return every package currently on the channel."""
+    return [package["name"] for package in fetch(f"{ANACONDA_API}/packages/{ANACONDA_USER}")]
 
 
 def last_upload_time(name):
@@ -242,8 +240,8 @@ Some things worth checking:
 - Was its scheduled run \
 [disabled by GitHub](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/disable-and-enable-a-workflow) \
 after a period of repository inactivity?
-- Has there simply been nothing to build? Uploading on a fixed cadence even when nothing has \
-changed keeps the channel populated for downstream users.
+- Has there simply been nothing to build? Consider uploading on a fixed cadence even when \
+nothing has changed, to keep the channel populated for downstream users.
 
 This issue was opened automatically from [scientific-python/upload-nightly-action]({ACTION_URL}), \
 and will be closed automatically once a new wheel is uploaded.
@@ -438,7 +436,10 @@ def main(argv=None):
     LOGIN = GH.get_user().login
     print(f"Acting as {LOGIN}")
 
-    names = list_packages(read_ignored(IGNORE_FILE))
+    # Packages exempt from the cleanup are also exempt from being nagged about,
+    # since their wheels are not going anywhere
+    ignored = read_ignored(IGNORE_FILE)
+    names = [name for name in list_packages() if name not in ignored]
 
     now = datetime.now(timezone.utc)
     # Most of the runtime is the ~5 read-only lookups each package needs; writes

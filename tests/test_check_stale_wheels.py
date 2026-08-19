@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Tests for ``tools/check_stale_wheels.py``."""
 
+import re
 import sys
 from pathlib import Path
 
@@ -102,6 +103,17 @@ def test_repo_from_pypi(project_urls, name):
 def test_repo_from_pypi_url_forms(monkeypatch, url, expected):
     monkeypatch.setattr(check_stale_wheels, "pypi_project_urls", lambda name: {"source": url})
     assert check_stale_wheels.repo_from_pypi("whatever") == expected
+
+
+def test_policy_url_anchor_exists():
+    """The issues we open link to a README heading, which can be renamed away."""
+    readme = (Path(__file__).resolve().parent.parent / "README.md").read_text()
+    anchors = set()
+    for line in readme.splitlines():
+        if line.startswith("#"):
+            heading = line.lstrip("#").strip().lower()
+            anchors.add(re.sub(r"\s+", "-", re.sub(r"[^\w\s-]", "", heading)))
+    assert check_stale_wheels.POLICY_URL.split("#", 1)[1] in anchors
 
 
 if __name__ == "__main__":

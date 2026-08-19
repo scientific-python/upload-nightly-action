@@ -11,6 +11,7 @@ updates:
           - "*"
     labels:
       - "github-actions"
+      - "chore"
 
   # Maintain the pinned dependencies of the Python tools
   - package-ecosystem: "pip"

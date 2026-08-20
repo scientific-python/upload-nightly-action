@@ -86,6 +86,53 @@ In addition cron jobs in GitHub repositories will be disabled after a certain am
 We are not aware of a solution other than regular commit activity to prevent the deactivation of
 scheduled cron jobs.
 
+## Stale wheel reminders
+
+So that the removal above does not come as a surprise, a daily job in this repository checks how
+long ago each package was last uploaded. If it has been more than **15 days**, the job opens an
+issue on that project's own issue tracker naming the date its wheels will be removed, comments once
+more at **25 days**, and closes the issue automatically once a new wheel is uploaded. Issues are opened
+by [@scientific-python-bot][bot]; the repository to report to is taken from the project's PyPI
+metadata (`Project-URL`), so keeping those URLs pointed at your GitHub repository is enough to be
+reachable.
+
+[bot]: https://github.com/scientific-python-bot
+
+The check runs daily from `tools/check_stale_wheels.py` in this repository, an hour before the
+cleanup job that does the deleting. If your project's PyPI metadata carries no GitHub URL we can
+follow, we have no way to reach you: the run records that in an issue here instead, and the fix is
+either to add a `Project-URL` upstream or to ask us to map the package by hand. Maintainers of this
+repository: the workflow posts with `ISSUE_OPENER_TOKEN`, a token belonging to the bot account with
+the `public_repo` scope, and falls back to the workflow's own `GITHUB_TOKEN` when reporting here.
+
+## Reporting a failing scheduled workflow
+
+A cron job that quietly stops working can go unnoticed for months, which is the same problem the
+reminders above exist to solve. The scheduled workflows here each call `report-failure.yml`, a small
+reusable workflow that opens one issue when a run fails and rewrites that issue on later failures
+rather than adding a comment a day.
+
+Other projects are welcome to call it too:
+
+```yml
+jobs:
+  nightly:
+    ...
+
+  report-failure:
+    needs: [nightly]
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      issues: write
+    uses: scientific-python/upload-nightly-action/.github/workflows/report-failure.yml@main
+    with:
+      title: 'The nightly wheel build is failing'
+```
+
+The issue is opened in the calling repository by `github-actions[bot]`, using that workflow's own
+`GITHUB_TOKEN`, so no secret is needed. The `title` doubles as the identity of the issue, so keep it
+stable. As with the action itself, we recommend pinning to a specific SHA rather than to `main`.
+
 
 # Using nightly builds in CI
 

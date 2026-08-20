@@ -15,10 +15,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test-stale-wheels:
+    name: "test stale wheel check"
+    # No secrets needed, so this one can also run on forks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: '3.14'
+
+      - name: Run the tests
+        run: uv run --with-requirements requirements.txt tests/test_check_stale_wheels.py
+
   test:
     name: "test upload via action"
     runs-on: ubuntu-latest
     if: github.repository == 'scientific-python/upload-nightly-action'
+    # Pull requests from forks and from Dependabot are not given secrets, so there
+    # they check that the action refuses to run rather than really uploading
+    env:
+      HAS_TOKEN: ${{ secrets.UPLOAD_TOKEN != '' }}
+    outputs:
+      uploaded: ${{ steps.record.outputs.uploaded }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -47,19 +69,41 @@ jobs:
       - name: List contents of wheel
         run: python -m zipfile --list dist/test_package-*.whl
 
+      - name: Test that an upload without a token is refused
+        id: no_token
+        if: env.HAS_TOKEN != 'true'
+        continue-on-error: true
+        uses: ./_action_path/
+        with:
+          artifacts_path: dist
+          anaconda_nightly_upload_token: ''
+
+      - name: Check that the upload was refused
+        if: env.HAS_TOKEN != 'true'
+        env:
+          OUTCOME: ${{ steps.no_token.outcome }}
+        run: |
+          if [ "${OUTCOME}" != "failure" ]; then
+              echo "::error::the action did not refuse to upload without a token"
+              exit 1
+          fi
+
       - name: Test upload
+        if: env.HAS_TOKEN == 'true'
         uses: ./_action_path/
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
 
       - name: Test upload that forces removal first
+        if: env.HAS_TOKEN == 'true'
         uses: ./_action_path/
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
 
       - name: Build v0.0.2 wheel and sdist
+        if: env.HAS_TOKEN == 'true'
         run: |
           # Bump version to avoid wheel name conflicts
           sed -i 's/0.0.1/0.0.2/g' _action_path/tests/test_package/pyproject.toml
@@ -67,6 +111,7 @@ jobs:
           uv tool run --from build pyproject-build --installer=uv --outdir ./dist _action_path/tests/test_package
 
       - name: Test upload with non-main label
+        if: env.HAS_TOKEN == 'true'
         uses: ./_action_path/
         with:
           artifacts_path: dist
@@ -74,6 +119,7 @@ jobs:
           anaconda_nightly_upload_labels: test
 
       - name: Build v0.0.3 wheel and sdist
+        if: env.HAS_TOKEN == 'true'
         run: |
           # Bump version to avoid wheel name conflicts
           sed -i 's/0.0.2/0.0.3/g' _action_path/tests/test_package/pyproject.toml
@@ -81,15 +127,22 @@ jobs:
           uv tool run --from build pyproject-build --installer=uv --outdir ./dist _action_path/tests/test_package
 
       - name: Test upload with multiple labels
+        if: env.HAS_TOKEN == 'true'
         uses: ./_action_path/
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{ secrets.UPLOAD_TOKEN }}
           anaconda_nightly_upload_labels: dev,test
 
+      - name: Record whether anything was uploaded
+        id: record
+        run: echo "uploaded=${HAS_TOKEN}" | tee -a "${GITHUB_OUTPUT}"
+
   cleanup:
     runs-on: ubuntu-latest
     needs: [test]
+    # Nothing to clean up when the uploads were skipped for lack of a token
+    if: needs.test.outputs.uploaded == 'true'
     # Set required workflow secrets in the environment for additional security
     # https://github.com/scientific-python/upload-nightly-action/settings/environments
     environment:
@@ -107,3 +160,12 @@ jobs:
             anaconda --token ${{ secrets.ANACONDA_TOKEN }} remove \
               --force \
               "scientific-python-nightly-wheels/test-package"
+
+  report-failure:
+    needs: [test-stale-wheels, test, cleanup]
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      issues: write
+    uses: ./.github/workflows/report-failure.yml
+    with:
+      title: 'The scheduled CI run is failing'

@@ -1,0 +1,49 @@
+name: Report stale wheels
+
+on:
+  # Run daily at 0:23 UTC, an hour before "Remove old wheels"
+  schedule:
+  - cron:  '23 0 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report findings without opening or closing any issues'
+        type: boolean
+        default: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'scientific-python'
+    # Needed to open an issue here if we cannot reach a project's own tracker
+    permissions:
+      issues: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          python-version: '3.14'
+
+      - name: Check for stale wheels
+        env:
+          ISSUE_OPENER_TOKEN: ${{ secrets.ISSUE_OPENER_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          uv run --with-requirements requirements.txt tools/check_stale_wheels.py ${{ inputs.dry_run && '--dry-run' || '' }}
+
+  report-failure:
+    needs: [report]
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      issues: write
+    uses: ./.github/workflows/report-failure.yml
+    with:
+      title: 'The stale nightly wheel check is failing'

@@ -32,6 +32,7 @@ ANACONDA_USER = "scientific-python-nightly-wheels"
 ANACONDA_API = "https://api.anaconda.org"
 CHANNEL_URL = f"https://anaconda.org/{ANACONDA_USER}"
 ACTION_URL = "https://github.com/scientific-python/upload-nightly-action"
+BOT_URL = "https://github.com/scientific-python-bot"
 POLICY_URL = f"{ACTION_URL}#artifact-cleanup-policy-at-the-scientific-python-nightly-wheels-channel"
 
 # Hidden markers let us find our own issues and comments again without relying on
@@ -61,6 +62,10 @@ SCRIPT = Path(__file__).name
 IGNORE_FILE = Path(__file__).resolve().parent.parent / "packages-ignore-from-cleanup.txt"
 SESSION = requests.Session()
 SESSION.headers["User-Agent"] = "scientific-python-upload-nightly-action"
+
+# What this run did, surfaced as an annotation on the job page at the end so the
+# issues are one click away rather than buried in the summary table.
+NOTICES = []
 
 # Ambient run configuration, set once by main().
 GH: Github = None
@@ -230,6 +235,9 @@ The most recent {describe(stale)} nightly wheels on the \
 
 {uploads}
 
+The *Updated* date shown on anaconda.org can be newer than these: it tracks any change to the \
+package, including our own removal of versions that have expired.
+
 Wheels are [removed after {RETENTION_DAYS} days]({POLICY_URL}), so unless a new nightly is \
 uploaded before **{removal_date:%Y-%m-%d}** there will be no wheels left on the channel at all, \
 and downstream projects that test against nightlies will fail to install them.
@@ -243,9 +251,15 @@ after a period of repository inactivity?
 - Has there simply been nothing to build? Consider uploading on a fixed cadence even when \
 nothing has changed, to keep the channel populated for downstream users.
 
-This issue was opened automatically from [scientific-python/upload-nightly-action]({ACTION_URL}), \
-and will be closed automatically once a new wheel is uploaded.
+*🤖 Opened automatically by [scientific-python-bot]({BOT_URL}) from \
+[scientific-python/upload-nightly-action]({ACTION_URL}), and closed again on its own once a new \
+wheel is uploaded.*
 """
+
+
+def action(done, would):
+    """Word a summary status as an action taken, or one --dry-run only considered."""
+    return would if DRY_RUN else done
 
 
 def create_issue(repo, title, body):
@@ -280,8 +294,11 @@ def handle_fresh(packages, issues):
     newest = max(package.last_upload for package in packages)
     for issue in open_issues:
         for package in packages:
-            package.status = "resolved"
+            package.status = action("resolved", "would close")
             package.issue_url = issue.html_url
+        NOTICES.append(
+            f"{action('Closed', 'Would close')} for {describe(packages)}: {issue.html_url}"
+        )
         close_issue(
             issue, f"New nightly wheels were uploaded on {newest:%Y-%m-%d}. Thanks! Closing."
         )
@@ -310,7 +327,11 @@ def handle_stale(repo, stale, issues, now):
             issue_title(stale, age),
             issue_body(stale, age, removal_date),
         )
-        mark("opened", url)
+        mark(action("opened", "would open"), url)
+        NOTICES.append(
+            f"{action('Opened', 'Would open')} for {describe(stale)}: "
+            f"{url or repo.html_url + '/issues'}"
+        )
         return
 
     issue = open_issues[0]
@@ -319,7 +340,11 @@ def handle_stale(repo, stale, issues, now):
         return
     if any(FINAL_WARNING_MARKER in (item.body or "") for item in issue.get_comments()):
         return
-    mark("final warning", issue.html_url)
+    mark(action("final warning", "would comment"), issue.html_url)
+    NOTICES.append(
+        f"{action('Commented', 'Would comment')} on {describe(stale)} at {age} days: "
+        f"{issue.html_url}"
+    )
     comment(
         issue,
         f"{FINAL_WARNING_MARKER}\nStill no new nightly wheels for {describe(stale)}. The "
@@ -348,7 +373,7 @@ def handle_repo(repo, packages, now):
 
 def write_summary(packages, now):
     lines = [
-        f"## Nightly wheel freshness ({now:%Y-%m-%d})",
+        f"## Nightly wheel freshness ({now:%Y-%m-%d}){' — dry run' if DRY_RUN else ''}",
         "",
         "| Package | Last upload | Age (days) | Repository | Status |",
         "| --- | --- | --- | --- | --- |",
@@ -374,6 +399,19 @@ def write_summary(packages, now):
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as fid:
             fid.write(summary + "\n")
+
+
+def annotate(lines):
+    """Surface what the run did as an annotation on the GitHub Actions job page."""
+    if not lines:
+        return
+    body = "\n".join(lines)
+    if os.environ.get("GITHUB_ACTIONS"):
+        # Workflow commands are one line, so the newlines have to be encoded
+        body = body.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        print(f"::notice title=Stale wheel check::{body}")
+    else:
+        print(f"\n{body}")
 
 
 def report_errors(errors):
@@ -456,6 +494,7 @@ def main(argv=None):
         handle_repo(group[0].repo, group, now)
 
     write_summary(packages, now)
+    annotate(NOTICES)
     errors = [package.error for package in packages if package.error]
     if errors:
         report_errors(errors)

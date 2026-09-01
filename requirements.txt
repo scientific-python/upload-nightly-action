@@ -6,6 +6,6 @@
 # Pin exactly rather than with a range: Dependabot leaves a range alone while the
 # newest release still satisfies it, so a range would give neither pinning nor
 # update pull requests.
-PyGithub==2.9.1   # check_stale_wheels.py: reading, opening and closing issues
+PyGithub==2.10.0   # check_stale_wheels.py: reading, opening and closing issues
 pytest==9.1.1     # tests/
 requests==2.34.2  # check_stale_wheels.py: the anaconda.org and PyPI APIs

@@ -37,7 +37,7 @@ jobs:
           ISSUE_OPENER_TOKEN: ${{ secrets.ISSUE_OPENER_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          uv run --with-requirements requirements.txt tools/check_stale_wheels.py ${{ inputs.dry_run && '--dry-run' || '' }}
+          uv run --with-requirements tools/requirements.txt tools/check_stale_wheels.py ${{ inputs.dry_run && '--dry-run' || '' }}
 
   report-failure:
     needs: [report]

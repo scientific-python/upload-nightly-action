@@ -29,7 +29,7 @@ jobs:
           python-version: '3.14'
 
       - name: Run the tests
-        run: uv run --with-requirements requirements.txt tests/test_check_stale_wheels.py
+        run: uv run --with-requirements tools/requirements.txt tests/test_check_stale_wheels.py
 
   test:
     name: "test upload via action"

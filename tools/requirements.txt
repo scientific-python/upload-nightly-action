@@ -1,7 +1,7 @@
 # Dependencies of the Python tools in this repository, and the only place their
 # versions are declared. Run a tool with:
 #
-#     uv run --with-requirements requirements.txt <script>
+#     uv run --with-requirements tools/requirements.txt <script>
 #
 # Pin exactly rather than with a range: Dependabot leaves a range alone while the
 # newest release still satisfies it, so a range would give neither pinning nor

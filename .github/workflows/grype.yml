@@ -1,0 +1,38 @@
+name: Vulnerability scans
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pixi.lock'
+      - '.github/workflows/grype.yml'
+  pull_request:
+    paths:
+      - 'pixi.lock'
+      - '.github/workflows/grype.yml'
+  schedule:
+  # Sunday at 01:59 UTC
+  - cron: '59 01 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  grype-scan:
+    name: "Scan action pixi environment"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@1b2de7f3351f171c8b4dfeb558c639cb58ed4ec0  # v0.9.5
+
+      - name: Scan with grype (for all vulnerabilities)
+        run: pixi exec grype .pixi/envs/default --fail-on critical
+
+      - name: Scan with grype (for fixed vulnerabilities)
+        run: pixi exec grype .pixi/envs/default --only-fixed --fail-on high

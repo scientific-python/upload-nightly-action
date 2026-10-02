@@ -149,13 +149,27 @@ jobs:
       name: remove-old-wheels
 
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      # Dogfood the remove-wheels action on PRs here. If we keep zero uploads,
+      # it marks every version of the package for removal.
+      - name: Remove test package uploads via the action
+        uses: ./remove-wheels
+        with:
+          n_latest_uploads_to_keep: 0
+          anaconda_nightly_upload_organization: scientific-python-nightly-wheels
+          anaconda_nightly_token: ${{ secrets.ANACONDA_TOKEN }}
+          package_name: test-package
+
+      # The action removes per version, so delete the (now empty) package
+      # registration as well
       - name: Set up pixi
         uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e  # v0.10.2
         with:
-          run-install: false
+          locked: true
 
-      - name: Remove test package upload
-        shell: pixi exec --spec anaconda-client -- bash -e {0}
+      - name: Remove the empty test package
+        shell: pixi run --manifest-path pixi.toml bash -e {0}
         run: |
             anaconda --token ${{ secrets.ANACONDA_TOKEN }} remove \
               --force \

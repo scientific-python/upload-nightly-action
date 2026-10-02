@@ -16,6 +16,10 @@ The hour between the two is deliberate: a package must be flagged before it can 
 This repository nags other projects about silently broken automation, so its own cron jobs must not fail quietly.
 It is called as a job rather than used as a composite action because `ci.yml` checks out to `_action_path` and `remove-wheels.yml` does not check out at all.
 
+The stale wheel check also renders a small site with Jinja: the table through `tools/status.html` into `site/status.html`, and the README through `tools/index.html` into `site/index.html`, both extending `tools/layout.html` and sharing `tools/_static/site.css`; `stale-wheels.yml` then publishes the directory to <https://scientific-python.github.io/upload-nightly-action/> with `actions/deploy-pages`.
+Pages is deployed from the workflow artifact, not a `gh-pages` branch, by request; the repository's Pages source must be set to "GitHub Actions" for the deploy job to work.
+Dry runs skip the deploy so the public page never shows "would open".
+
 ## Conventions
 
 Pin third-party actions to a full commit SHA with a `# vX.Y.Z` comment; Dependabot updates them monthly as a single group.
@@ -53,7 +57,7 @@ Dry runs still authenticate and still read issues; they only skip writes.
 The thresholds are constants at the top of the script rather than command line options, by request: add an option only when something actually needs to vary.
 `RETENTION_DAYS` must stay in step with the 30 days in `remove-wheels.yml` and the policy section of `README.md`.
 
-Tests live in `tests/test_check_stale_wheels.py` and run with `uv run --frozen tests/test_check_stale_wheels.py`.
+Tests live in `tests/test_check_stale_wheels.py` and run with `uv run --with-requirements tools/requirements.txt tests/test_check_stale_wheels.py`.
 They stub the network, so they are fast and safe to run anywhere.
 Every case in them is a real package whose metadata would break a naive implementation; add to that table rather than replacing it when the resolution logic changes.
 

@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import shutil
 import sys
 import urllib.parse
 from collections import defaultdict
@@ -25,6 +26,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import jinja2
+import markdown_it
 import requests
 from github import Auth, Github, GithubException
 
@@ -32,6 +35,7 @@ ANACONDA_USER = "scientific-python-nightly-wheels"
 ANACONDA_API = "https://api.anaconda.org"
 CHANNEL_URL = f"https://anaconda.org/{ANACONDA_USER}"
 ACTION_URL = "https://github.com/scientific-python/upload-nightly-action"
+BOT_URL = "https://github.com/scientific-python-bot"
 POLICY_URL = f"{ACTION_URL}#artifact-cleanup-policy-at-the-scientific-python-nightly-wheels-channel"
 
 # Hidden markers let us find our own issues and comments again without relying on
@@ -57,10 +61,16 @@ PYPI_MAP = {
     "icechunk": "earth-mover/icechunk",
 }
 
+HERE = Path(__file__).resolve().parent
+TEMPLATES = jinja2.Environment(loader=jinja2.FileSystemLoader(HERE), autoescape=True)
 SCRIPT = Path(__file__).name
-IGNORE_FILE = Path(__file__).resolve().parent.parent / "packages-ignore-from-cleanup.txt"
+IGNORE_FILE = HERE.parent / "packages-ignore-from-cleanup.txt"
 SESSION = requests.Session()
 SESSION.headers["User-Agent"] = "scientific-python-upload-nightly-action"
+
+# What this run did, surfaced as an annotation on the job page at the end so the
+# issues are one click away rather than buried in the summary table.
+NOTICES = []
 
 # Ambient run configuration, set once by main().
 GH: Github = None
@@ -230,6 +240,9 @@ The most recent {describe(stale)} nightly wheels on the \
 
 {uploads}
 
+The *Updated* date shown on anaconda.org can be newer than these: it tracks any change to the \
+package, including our own removal of versions that have expired.
+
 Wheels are [removed after {RETENTION_DAYS} days]({POLICY_URL}), so unless a new nightly is \
 uploaded before **{removal_date:%Y-%m-%d}** there will be no wheels left on the channel at all, \
 and downstream projects that test against nightlies will fail to install them.
@@ -243,9 +256,15 @@ after a period of repository inactivity?
 - Has there simply been nothing to build? Consider uploading on a fixed cadence even when \
 nothing has changed, to keep the channel populated for downstream users.
 
-This issue was opened automatically from [scientific-python/upload-nightly-action]({ACTION_URL}), \
-and will be closed automatically once a new wheel is uploaded.
+*🤖 Opened automatically by [scientific-python-bot]({BOT_URL}) from \
+[scientific-python/upload-nightly-action]({ACTION_URL}), and closed again on its own once a new \
+wheel is uploaded.*
 """
+
+
+def action(done, would):
+    """Word a summary status as an action taken, or one --dry-run only considered."""
+    return would if DRY_RUN else done
 
 
 def create_issue(repo, title, body):
@@ -280,8 +299,11 @@ def handle_fresh(packages, issues):
     newest = max(package.last_upload for package in packages)
     for issue in open_issues:
         for package in packages:
-            package.status = "resolved"
+            package.status = action("resolved", "would close")
             package.issue_url = issue.html_url
+        NOTICES.append(
+            f"{action('Closed', 'Would close')} for {describe(packages)}: {issue.html_url}"
+        )
         close_issue(
             issue, f"New nightly wheels were uploaded on {newest:%Y-%m-%d}. Thanks! Closing."
         )
@@ -310,7 +332,11 @@ def handle_stale(repo, stale, issues, now):
             issue_title(stale, age),
             issue_body(stale, age, removal_date),
         )
-        mark("opened", url)
+        mark(action("opened", "would open"), url)
+        NOTICES.append(
+            f"{action('Opened', 'Would open')} for {describe(stale)}: "
+            f"{url or repo.html_url + '/issues'}"
+        )
         return
 
     issue = open_issues[0]
@@ -319,7 +345,11 @@ def handle_stale(repo, stale, issues, now):
         return
     if any(FINAL_WARNING_MARKER in (item.body or "") for item in issue.get_comments()):
         return
-    mark("final warning", issue.html_url)
+    mark(action("final warning", "would comment"), issue.html_url)
+    NOTICES.append(
+        f"{action('Commented', 'Would comment')} on {describe(stale)} at {age} days: "
+        f"{issue.html_url}"
+    )
     comment(
         issue,
         f"{FINAL_WARNING_MARKER}\nStill no new nightly wheels for {describe(stale)}. The "
@@ -346,34 +376,109 @@ def handle_repo(repo, packages, now):
             package.error = f"`{package.name}` ({repo.full_name}): {exc}"
 
 
-def write_summary(packages, now):
+def run_url():
+    """Link to the current GitHub Actions run, or None outside of one."""
+    run_id = os.environ.get("GITHUB_RUN_ID")
+    if not run_id:
+        return None
+    server = os.environ.get("GITHUB_SERVER_URL", "https://github.com")
+    return f"{server}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{run_id}"
+
+
+def summary_rows(packages, now):
+    """One row per package, oldest upload first, with what both renderers need."""
+    epoch = datetime.min.replace(tzinfo=timezone.utc)
+    rows = []
+    for package in sorted(packages, key=lambda p: p.last_upload or epoch):
+        known = package.last_upload is not None
+        age = package.age_days(now) if known else None
+        status = package.status
+        if package.error:
+            # The full text, including how to fix it, goes in the issue report_errors opens
+            status = f"error: {package.error.split(': ', 1)[-1].split(' — ')[0]}"
+        rows.append(
+            {
+                "name": package.name,
+                "upload": f"{package.last_upload:%Y-%m-%d}" if known else "?",
+                "age": str(age) if known else "?",
+                "stale": known and age >= WARN_DAYS,
+                "repo": package.repo.full_name if package.repo else None,
+                "status": status,
+                "url": None if package.error else package.issue_url,
+            }
+        )
+    return rows
+
+
+def markdown_summary(rows, now):
     lines = [
-        f"## Nightly wheel freshness ({now:%Y-%m-%d})",
+        f"## Nightly wheel freshness ({now:%Y-%m-%d}){' — dry run' if DRY_RUN else ''}",
         "",
         "| Package | Last upload | Age (days) | Repository | Status |",
         "| --- | --- | --- | --- | --- |",
     ]
-    epoch = datetime.min.replace(tzinfo=timezone.utc)
-    for package in sorted(packages, key=lambda p: p.last_upload or epoch):
-        age = "?" if package.last_upload is None else package.age_days(now)
-        upload = "?" if package.last_upload is None else f"{package.last_upload:%Y-%m-%d}"
-        name = package.repo.full_name if package.repo else None
-        repo = f"[{name}](https://github.com/{name})" if name else "—"
-        status = package.status
-        if package.issue_url:
-            status = f"[{status}]({package.issue_url})"
-        if package.error:
-            # Keep the table readable; the full text, including how to fix it, goes
-            # in the issue report_errors opens.
-            status = f"error: {package.error.split(': ', 1)[-1].split(' — ')[0]}"
-        elif age != "?" and age >= WARN_DAYS:
-            age = f"**{age}**"
-        lines.append(f"| {package.name} | {upload} | {age} | {repo} | {status} |")
-    summary = "\n".join(lines)
+    for row in rows:
+        age = f"**{row['age']}**" if row["stale"] else row["age"]
+        repo = f"[{row['repo']}](https://github.com/{row['repo']})" if row["repo"] else "—"
+        status = f"[{row['status']}]({row['url']})" if row["url"] else row["status"]
+        lines.append(f"| {row['name']} | {row['upload']} | {age} | {repo} | {status} |")
+    return "\n".join(lines)
+
+
+def status_page(rows, now):
+    return TEMPLATES.get_template("status.html").render(
+        title="Nightly wheel freshness",
+        rows=rows,
+        channel=ANACONDA_USER,
+        channel_url=CHANNEL_URL,
+        policy_url=POLICY_URL,
+        action_url=ACTION_URL,
+        retention_days=RETENTION_DAYS,
+        warn_days=WARN_DAYS,
+        when=f"{now:%Y-%m-%d %H:%M} UTC",
+        run_url=run_url(),
+    )
+
+
+def landing_page(now):
+    """The README, rendered, so the site's front page never goes stale."""
+    heading, _, body = (HERE.parent / "README.md").read_text().partition("\n")
+    return TEMPLATES.get_template("index.html").render(
+        # The layout's header is the page title, so the README's own is dropped
+        title=heading.removeprefix("# ").strip(),
+        readme=markdown_it.MarkdownIt("commonmark").render(body),
+        action_url=ACTION_URL,
+        when=f"{now:%Y-%m-%d}",
+    )
+
+
+def write_summary(packages, now, site_dir=None):
+    rows = summary_rows(packages, now)
+    summary = markdown_summary(rows, now)
     print(summary)
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as fid:
             fid.write(summary + "\n")
+    if site_dir:
+        site_dir.mkdir(parents=True, exist_ok=True)
+        (site_dir / "status.html").write_text(status_page(rows, now))
+        (site_dir / "index.html").write_text(landing_page(now))
+        shutil.copytree(HERE / "_static", site_dir / "_static", dirs_exist_ok=True)
+        # Harmless with the Actions deploy; keeps _static/ alive if Pages ever moves to a branch
+        (site_dir / ".nojekyll").touch()
+
+
+def annotate(lines):
+    """Surface what the run did as an annotation on the GitHub Actions job page."""
+    if not lines:
+        return
+    body = "\n".join(lines)
+    if os.environ.get("GITHUB_ACTIONS"):
+        # Workflow commands are one line, so the newlines have to be encoded
+        body = body.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        print(f"::notice title=Stale wheel check::{body}")
+    else:
+        print(f"\n{body}")
 
 
 def report_errors(errors):
@@ -382,11 +487,8 @@ def report_errors(errors):
     This uses GITHUB_TOKEN rather than the bot's token: the thing that failed may
     well be the bot's token itself.
     """
-    run_id = os.environ.get("GITHUB_RUN_ID")
-    check = "stale wheel check"
-    if run_id:
-        server = os.environ.get("GITHUB_SERVER_URL", "https://github.com")
-        check = f"[{check}]({server}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{run_id})"
+    url = run_url()
+    check = f"[stale wheel check]({url})" if url else "stale wheel check"
     body = (
         f"{REPORT_MARKER}\nThese packages are on the "
         f"[`{ANACONDA_USER}`]({CHANNEL_URL}) channel, but the "
@@ -423,6 +525,12 @@ def main(argv=None):
         action="store_true",
         help="report what would happen without opening, commenting on, or closing issues",
     )
+    parser.add_argument(
+        "--site",
+        type=Path,
+        metavar="DIR",
+        help="also write the status site there: the table, the README, and the stylesheet",
+    )
     args = parser.parse_args(argv)
 
     DRY_RUN = args.dry_run
@@ -455,7 +563,8 @@ def main(argv=None):
     for group in by_repo.values():
         handle_repo(group[0].repo, group, now)
 
-    write_summary(packages, now)
+    write_summary(packages, now, args.site)
+    annotate(NOTICES)
     errors = [package.error for package in packages if package.error]
     if errors:
         report_errors(errors)

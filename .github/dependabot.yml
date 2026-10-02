@@ -15,7 +15,7 @@ updates:
 
   # Maintain the pinned dependencies of the Python tools
   - package-ecosystem: "pip"
-    directory: "/"
+    directory: "/tools"
     schedule:
       interval: "monthly"
     groups:

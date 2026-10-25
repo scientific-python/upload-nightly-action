@@ -4,10 +4,10 @@ channels = ["conda-forge"]
 description = "Environment for the scientific-python/upload-nightly-action GitHub action"
 name = "upload-nightly-action"
 platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
-version = "0.6.5"
+version = "0.6.6"
 requires-pixi = ">=0.68.0"
-# month window to find security issues
-exclude-newer = "30d"
+# 3 day window to find security issues
+exclude-newer = "3d"
 
 [tasks]
 

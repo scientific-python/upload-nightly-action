@@ -3,6 +3,7 @@
 
 import re
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -114,6 +115,29 @@ def test_policy_url_anchor_exists():
             heading = line.lstrip("#").strip().lower()
             anchors.add(re.sub(r"\s+", "-", re.sub(r"[^\w\s-]", "", heading)))
     assert check_stale_wheels.POLICY_URL.split("#", 1)[1] in anchors
+
+
+def test_html_summary_marks_stale_rows_and_escapes():
+    now = datetime(2026, 9, 3, tzinfo=timezone.utc)
+    fresh = check_stale_wheels.Package(name="fresh", last_upload=now, status="ok")
+    stale = check_stale_wheels.Package(
+        name="<b>stale</b>",
+        last_upload=now - timedelta(days=check_stale_wheels.WARN_DAYS),
+        status="opened",
+        issue_url="https://github.com/o/r/issues/1",
+    )
+    page = check_stale_wheels.status_page(check_stale_wheels.summary_rows([fresh, stale], now), now)
+    assert page.count('<tr class="stale">') == 1
+    assert "&lt;b&gt;stale&lt;/b&gt;" in page and "<b>stale</b>" not in page
+    assert '<a href="https://github.com/o/r/issues/1">opened</a>' in page
+
+
+def test_landing_page_is_the_readme_routing_to_the_status_page():
+    page = check_stale_wheels.landing_page(datetime(2026, 9, 3, tzinfo=timezone.utc))
+    assert 'href="status.html"' in page
+    assert "<h2>Stale wheel reminders</h2>" in page
+    # The README's own H1 becomes the page title rather than appearing twice
+    assert page.count("Nightly upload") == 2 and "<h1>Nightly upload</h1>" not in page
 
 
 if __name__ == "__main__":

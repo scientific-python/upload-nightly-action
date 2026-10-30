@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block subtitle %}nightly wheels for the Scientific Python ecosystem{% endblock %}
+{% block content %}
+<p class="callout"><a href="status.html">How fresh is every project's nightly wheel right now?</a>
+— the daily check's latest table.</p>
+{{ readme | safe }}
+{% endblock %}
+{% block footer %}This is the <a href="{{ action_url }}#readme">README</a> of
+scientific-python/upload-nightly-action, rendered {{ when }}.{% endblock %}

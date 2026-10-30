@@ -98,6 +98,10 @@ reachable.
 
 [bot]: https://github.com/scientific-python-bot
 
+The current state of every package on the channel is published after each run at
+<https://scientific-python.github.io/upload-nightly-action/status.html>, alongside a rendered copy of
+this README.
+
 The check runs daily from `tools/check_stale_wheels.py` in this repository, an hour before the
 cleanup job that does the deleting. If your project's PyPI metadata carries no GitHub URL we can
 follow, we have no way to reach you: the run records that in an issue here instead, and the fix is

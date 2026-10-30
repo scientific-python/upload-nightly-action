@@ -1,0 +1,42 @@
+/* Deployed as _static/site.css beside the rendered pages.
+   Colors are the PyData Sphinx Theme tokens that https://scientific-python.org is
+   built on, copied from the --pst-color-* custom properties in the compiled
+   stylesheet it serves (the filename is content-hashed, so it cannot be linked):
+   https://github.com/scientific-python/scientific-python-hugo-theme/blob/main/assets/theme-css/pst/variables/_color.scss
+   The heading font is the one the site loads from Google Fonts. */
+:root {
+  color-scheme: light dark;
+  --primary: #0a7d91; --secondary: #8045e5; --text: #222832; --muted: #48566b;
+  --border: #d1d5da; --surface: #f3f4f5; --background: #ffffff; --stale: #f0a03026;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #3fb1c5; --secondary: #9c5ffd; --text: #ced6dd; --muted: #9ca4af;
+    --border: #48566b; --surface: #29313d; --background: #14181e; --stale: #f0a03033;
+  }
+}
+body {
+  font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: var(--text); background: var(--background);
+  max-width: 64rem; margin: 0 auto; padding: 2rem 1.5rem;
+}
+header { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.5rem; }
+header img { height: 4.5rem; width: auto; }
+h1 { font-family: Lato, sans-serif; font-weight: 900; font-size: 2rem; margin: 0; line-height: 1.2; }
+h1 small { display: block; font-weight: 400; font-size: 1rem; color: var(--muted); margin-top: 0.25rem; }
+a { color: var(--primary); text-decoration: none; }
+a:hover { color: var(--secondary); text-decoration: underline; }
+code { font-family: SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; }
+table { border-collapse: collapse; width: 100%; margin-top: 1.5rem; }
+th { background: var(--surface); font-weight: 700; }
+th, td { text-align: left; padding: 0.45rem 0.75rem; border-bottom: 1px solid var(--border); }
+th:nth-child(3), td:nth-child(3) { text-align: right; }
+tr.stale td { background: var(--stale); font-weight: 600; }
+footer { margin-top: 2rem; font-size: 0.9rem; color: var(--muted); }
+
+/* The landing page is the README, rendered */
+main h1, main h2 { font-family: Lato, sans-serif; font-weight: 900; font-size: 1.4rem; margin: 2rem 0 0.5rem; }
+pre { background: var(--surface); padding: 0.75rem 1rem; overflow-x: auto; border-radius: 4px; }
+pre code { font-size: 0.85em; }
+:not(pre) > code { background: var(--surface); padding: 0.1em 0.3em; border-radius: 3px; }
+.callout { background: var(--surface); border-left: 4px solid var(--primary); padding: 0.75rem 1rem; }

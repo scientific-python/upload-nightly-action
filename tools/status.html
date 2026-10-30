@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block subtitle %}the <a href="{{ channel_url }}"><code>{{ channel }}</code></a> channel{% endblock %}
+{% block content %}
+<p>How recently each project last uploaded a nightly wheel.
+Wheels are <a href="{{ policy_url }}">removed after {{ retention_days }} days</a>; projects whose
+newest wheel is more than {{ warn_days }} days old are highlighted, and have an issue opened on
+their tracker.</p>
+<table>
+<thead><tr><th>Package</th><th>Last upload</th><th>Age (days)</th><th>Repository</th><th>Status</th></tr></thead>
+<tbody>
+{% for row in rows -%}
+<tr{% if row.stale %} class="stale"{% endif %}>
+<td>{{ row.name }}</td>
+<td>{{ row.upload }}</td>
+<td>{{ row.age }}</td>
+<td>{% if row.repo %}<a href="https://github.com/{{ row.repo }}">{{ row.repo }}</a>{% else %}—{% endif %}</td>
+<td>{% if row.url %}<a href="{{ row.url }}">{{ row.status }}</a>{% else %}{{ row.status }}{% endif %}</td>
+</tr>
+{% endfor -%}
+</tbody>
+</table>
+{% endblock %}
+{% block footer %}Updated {{ when }} by
+{% if run_url %}<a href="{{ run_url }}">the daily check</a>{% else %}the daily check{% endif %}, from
+<a href="{{ action_url }}">scientific-python/upload-nightly-action</a>.
+<a href="./">About the channel and this check.</a>{% endblock %}

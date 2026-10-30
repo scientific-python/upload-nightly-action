@@ -37,10 +37,35 @@ jobs:
           ISSUE_OPENER_TOKEN: ${{ secrets.ISSUE_OPENER_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          uv run --with-requirements tools/requirements.txt tools/check_stale_wheels.py ${{ inputs.dry_run && '--dry-run' || '' }}
+          uv run --with-requirements tools/requirements.txt tools/check_stale_wheels.py \
+            --site site ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: Upload the status page
+        if: inputs.dry_run != true
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+        with:
+          path: site
+
+  deploy:
+    # https://scientific-python.github.io/upload-nightly-action/ — from real runs only,
+    # so the page never shows "would open"
+    needs: [report]
+    if: inputs.dry_run != true
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy the status page
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346  # v5.0.1
 
   report-failure:
-    needs: [report]
+    needs: [report, deploy]
     if: failure() && github.event_name == 'schedule'
     permissions:
       issues: write
